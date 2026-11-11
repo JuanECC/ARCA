@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { onIdTokenChanged, signOut } from 'firebase/auth';
 import AuthPage from '../modules/auth/AuthPage';
 import { auth } from '../modules/auth/firebase';
-import { roleLabels } from '../modules/auth/roles';
+import { displayRole, roleLabels } from '../modules/auth/roles';
 import AdminPanel from '../modules/admin/AdminPanel';
 import CitizenReports from '../modules/citizen-reports/CitizenReports';
 import WaterOperations from '../modules/water-operations/WaterOperations';
@@ -27,7 +27,7 @@ export default function App() {
       const event = ++revision;
       try {
         const token = user ? await user.getIdTokenResult() : null;
-        if (current && event === revision) setSession(token?.claims ?? null);
+        if (current && event === revision) setSession(user ? { ...token.claims, email: user.email, role: displayRole(user, token.claims) } : null);
       } catch {
         if (current && event === revision) {
           setSession({});
@@ -63,7 +63,9 @@ export default function App() {
         <button className="text-button" onClick={logout}>Cerrar sesión</button>
       </header>
       {error && <p className="message error" role="alert">{error}</p>}
-      {Panel ? <Panel /> : <p>Esta cuenta necesita un rol asignado por el sistema.</p>}
+      {Panel ? (session.role === 'admin' && !session.username
+        ? <section className="card"><h2>Gestión de usuarios</h2><p>El acceso administrativo está listo. La creación de cuentas desde este panel requiere activar los permisos del servidor en Firebase.</p></section>
+        : <Panel />) : <p>Esta cuenta necesita un rol asignado por el sistema.</p>}
     </main>
   );
 }

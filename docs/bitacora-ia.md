@@ -33,3 +33,10 @@
 - **Solicitud.** Usar los cuatro correos ya creados manualmente en Firebase Authentication.
 - **Aporte de Codex.** Preparó un comando que valida las cuentas existentes, asigna sus roles e imprime sus nombres de usuario sin cambiar sus contraseñas.
 - **Verificación.** Sintaxis y protección contra ejecución en otro proyecto comprobadas. La ejecución en arca-e7c40 queda pendiente de acceso administrativo.
+
+## 2026-11-11 · Login directo con Firebase Auth
+
+- **Solicitud.** Usar inmediatamente las cuatro cuentas creadas en Firebase Authentication.
+- **Aporte de Codex.** Cambió el inicio de sesión a correo y contraseña con Firebase Auth y dirigió los correos de prueba a sus paneles.
+- **Verificación.** Compilación de Vite correcta. No se verificó el inicio de sesión contra el proyecto real desde este entorno.
+- **Alcance.** La asignación visual de paneles no concede permisos de backend. La creación administrativa de usuarios sigue condicionada a los roles de servidor.

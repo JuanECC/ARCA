@@ -117,3 +117,7 @@ npm run link-test-users --prefix firebase/functions
 ```
 
 El comando comprueba los cuatro correos antes de asignar los roles, conserva las contraseñas e imprime los nombres de usuario para el login. Si ya existe una vinculación válida, muestra el mismo nombre de usuario. Para probar la app contra el proyecto real también deben estar desplegadas las funciones de acceso.
+
+## Acceso directo con Firebase Auth
+
+Para probar las cuentas creadas en Authentication de `arca-e7c40`, ejecuta `npm run dev` desde la raíz y abre la URL local de Vite. Inicia sesión con el correo y la contraseña que asignaste en Firebase. La interfaz dirige los cuatro correos de prueba a sus paneles. Los permisos de operaciones administrativas en el servidor siguen requiriendo roles asignados con Firebase Admin SDK.
