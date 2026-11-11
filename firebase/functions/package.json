@@ -1,0 +1,16 @@
+{
+  "name": "arca-functions",
+  "version": "1.0.0",
+  "main": "index.js",
+  "scripts": {
+    "bootstrap-admin": "node bootstrap-admin.js"
+  },
+  "type": "module",
+  "engines": {
+    "node": "22"
+  },
+  "dependencies": {
+    "firebase-admin": "^14.5.0",
+    "firebase-functions": "^7.4.0"
+  }
+}

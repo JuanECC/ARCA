@@ -6,7 +6,7 @@ Proyecto para el Reto 3 del hackathon, Agua y lluvia. Busca conectar a la ciudad
 
 ## Estado
 
-El proyecto está en el módulo de arranque. La aplicación, Firebase y las integraciones externas están pendientes de implementación. Esta entrega define las carpetas de cada módulo y su responsabilidad.
+El módulo de acceso incluye registro ciudadano, login por nombre de usuario y cuatro paneles según el rol. Administración puede crear y consultar cuentas. Los paneles de reportes, agua y Protección Civil son vistas iniciales para sus respectivos módulos.
 
 ## Estructura
 
@@ -29,7 +29,7 @@ El proyecto está en el módulo de arranque. La aplicación, Firebase y las inte
 | `firebase/functions/` | Operaciones de backend, como el registro autorizado de cuentas. |
 | `firebase/rules/` | Reglas de acceso de Firestore y Storage. |
 
-El primer módulo de implementación será el login. La navegación usará el rol asignado a la cuenta y el backend verificará los permisos de cada operación. Después se implementarán el registro administrativo y los paneles.
+Firebase Auth conserva el correo y la contraseña. El backend genera un usuario único y asigna el rol a la cuenta mediante custom claims. El registro público siempre asigna Ciudadanía. El panel de Administración permite elegir Ciudadanía, Operación de Agua o Protección Civil. Las cuentas institucionales se aprovisionan con los correos autorizados por el equipo.
 
 
 La primera demo funcional recorrerá un reporte de fuga desde su captura hasta el cambio a «en atención» por el organismo operador y la consulta del estado por el ciudadano.
@@ -49,3 +49,33 @@ La vista **Control de código fuente** de VS Code usa el repositorio Git de esa 
 ## Datos y permisos
 
 Los roles institucionales se asignarán por un mecanismo autorizado. Las reglas del backend protegerán fotos, coordenadas precisas y datos personales. La interfaz identificará por separado los datos simulados, las sugerencias de IA y los avisos institucionales. Si falta una fuente de tandeos confiable, se mostrará «Información no disponible».
+
+## Ejecutar el módulo de acceso
+
+Instala Node.js 22 (22.12 o posterior), un JDK 21 o posterior para Firestore y el CLI oficial de Firebase. Desde la raíz instala las dependencias y arranca los emuladores.
+
+```powershell
+npm ci --prefix web
+npm ci --prefix firebase/functions
+npx firebase-tools emulators:start --project demo-arca --only auth,firestore,functions
+```
+
+En una segunda terminal inicia Vite conectado al proyecto de prueba.
+
+```powershell
+$env:VITE_FIREBASE_EMULATORS = 'true'
+npm run dev --prefix web
+```
+
+Para probar Administración, crea una cuenta con correo y contraseña de prueba en **Authentication** en la consola local del emulador. Después asigna el rol y obtén su nombre de usuario desde otra terminal.
+
+```powershell
+$env:GCLOUD_PROJECT = 'demo-arca'
+$env:FIREBASE_AUTH_EMULATOR_HOST = '127.0.0.1:9099'
+$env:FIRESTORE_EMULATOR_HOST = '127.0.0.1:8080'
+npm run bootstrap-admin --prefix firebase/functions -- admin@example.test
+```
+
+En un proyecto real, habilita el proveedor Correo/Contraseña, crea Firestore y completa los archivos de configuración locales a partir de `web/.env.example` y `firebase/functions/.env.example`. La cuenta de servicio de Functions necesita acceso a Auth y Firestore y permiso para firmar tokens personalizados. Ejecuta el aprovisionamiento inicial con credenciales administrativas de Google y el ID del proyecto. Las cuentas institucionales se crean desde Administración antes de entregar el acceso a sus titulares. El repositorio no contiene credenciales ni cuentas precargadas.
+
+Consulta la documentación de [tokens personalizados de Firebase](https://firebase.google.com/docs/auth/admin/create-custom-tokens).

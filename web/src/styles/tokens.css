@@ -1,0 +1,189 @@
+/*
+ * Tokens de diseño ARCA (base: sistema "Glacier").
+ * Todos los colores se consumen vía variables; cada par fondo/texto
+ * está definido para ambos temas, así nada queda ilegible en dark.
+ */
+
+:root {
+  /* Tipografía */
+  --font-sans: 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  --font-display: 'Plus Jakarta Sans', var(--font-sans);
+
+  --text-2xs: 0.6875rem; /* 11px */
+  --text-xs: 0.75rem;
+  --text-sm: 0.8125rem;
+  --text-md: 0.875rem;
+  --text-base: 1rem;
+  --text-lg: 1.125rem;
+  --text-xl: 1.375rem;
+  --text-2xl: 1.75rem;
+  --text-3xl: 2.125rem;
+
+  /* Espaciado */
+  --space-1: 0.25rem;
+  --space-2: 0.5rem;
+  --space-3: 0.75rem;
+  --space-4: 1rem;
+  --space-5: 1.25rem;
+  --space-6: 1.5rem;
+  --space-8: 2rem;
+
+  /* Radios */
+  --radius-sm: 0.375rem;
+  --radius-md: 0.625rem;
+  --radius-lg: 0.875rem;
+  --radius-xl: 1.25rem;
+  --radius-full: 9999px;
+
+  /* Layout */
+  --header-h: 4.5rem;
+  --mobile-nav-h: 4rem;
+  --content-max: 1720px;
+  --gutter: 1rem;
+
+  --ease: cubic-bezier(0.2, 0.7, 0.2, 1);
+
+  /* Capas (z-index) */
+  --z-header: 40;
+  --z-mobile-nav: 40;
+  --z-modal: 60;
+  --z-toast: 80;
+}
+
+@media (min-width: 640px) {
+  :root { --gutter: 1.5rem; }
+}
+@media (min-width: 1024px) {
+  :root { --gutter: 2.5rem; --header-h: 5rem; }
+}
+
+/* ---------- Tema claro ---------- */
+:root,
+:root[data-theme='light'] {
+  color-scheme: light;
+
+  --c-bg: #f6f8f9;
+  --c-surface: #f9fafa;
+  --c-surface-lowest: #ffffff;
+  --c-surface-low: #f2f4f5;
+  --c-surface-container: #ebeef0;
+  --c-surface-high: #e3e7ea;
+  --c-surface-highest: #d9dee2;
+
+  --c-on-surface: #182024;
+  --c-on-surface-variant: #43505a;
+  --c-muted: #64717b;
+  --c-outline: #bec8ce;
+  --c-border: rgba(0, 102, 134, 0.12);
+
+  --c-primary: #006686;
+  --c-on-primary: #ffffff;
+  --c-primary-container: #c4ebff;
+  --c-on-primary-container: #004d66;
+  --c-primary-soft: rgba(0, 102, 134, 0.1);
+
+  --c-secondary: #376479;
+  --c-on-secondary: #ffffff;
+  --c-secondary-container: #d3eefc;
+  --c-on-secondary-container: #1c4c60;
+
+  --c-tertiary: #724e97;
+  --c-on-tertiary: #ffffff;
+  --c-tertiary-container: #efdcff;
+  --c-on-tertiary-container: #59367d;
+
+  --c-error: #ba1a1a;
+  --c-on-error: #ffffff;
+  --c-error-container: #ffdad6;
+  --c-on-error-container: #8c0009;
+
+  --c-warning: #8a5300;
+  --c-on-warning: #ffffff;
+  --c-warning-container: #ffe3b0;
+  --c-on-warning-container: #5c3700;
+
+  --c-success: #1d6b4f;
+  --c-on-success: #ffffff;
+  --c-success-container: #c9f0dc;
+  --c-on-success-container: #0b4a33;
+
+  /* Semáforo hídrico (marcadores en mapa y puntos) */
+  --c-risk-low: #1f8a5f;
+  --c-risk-mid: #d08a00;
+  --c-risk-high: #d32f2f;
+
+  /* Vidrio */
+  --glass-bg: rgba(255, 255, 255, 0.78);
+  --glass-strong: rgba(255, 255, 255, 0.92);
+  --glass-border: rgba(0, 102, 134, 0.14);
+  --scrim: rgba(24, 32, 36, 0.42);
+
+  --shadow-sm: 0 1px 2px rgba(16, 32, 40, 0.06), 0 1px 3px rgba(16, 32, 40, 0.05);
+  --shadow-md: 0 6px 18px -6px rgba(16, 40, 56, 0.16);
+  --shadow-lg: 0 18px 40px -16px rgba(16, 40, 56, 0.28);
+  --glow: 0 0 0 3px rgba(0, 102, 134, 0.18);
+}
+
+/* ---------- Tema oscuro ---------- */
+:root[data-theme='dark'] {
+  color-scheme: dark;
+
+  --c-bg: #0c1113;
+  --c-surface: #11171a;
+  --c-surface-lowest: #0a0e10;
+  --c-surface-low: #161d20;
+  --c-surface-container: #1b2327;
+  --c-surface-high: #242d32;
+  --c-surface-highest: #2f393e;
+
+  --c-on-surface: #e3e9ec;
+  --c-on-surface-variant: #b9c5cc;
+  --c-muted: #8f9ba3;
+  --c-outline: #3f4b52;
+  --c-border: rgba(123, 209, 250, 0.12);
+
+  --c-primary: #7bd1fa;
+  --c-on-primary: #00344a;
+  --c-primary-container: #0b4a63;
+  --c-on-primary-container: #c4ebff;
+  --c-primary-soft: rgba(123, 209, 250, 0.12);
+
+  --c-secondary: #a0cde5;
+  --c-on-secondary: #03364a;
+  --c-secondary-container: #1c4c60;
+  --c-on-secondary-container: #d3eefc;
+
+  --c-tertiary: #dcb8ff;
+  --c-on-tertiary: #40196a;
+  --c-tertiary-container: #4f2f73;
+  --c-on-tertiary-container: #f0dbff;
+
+  --c-error: #ffb4ab;
+  --c-on-error: #690005;
+  --c-error-container: #7a1414;
+  --c-on-error-container: #ffdad6;
+
+  --c-warning: #fbc35c;
+  --c-on-warning: #3d2500;
+  --c-warning-container: #4d3300;
+  --c-on-warning-container: #ffe3b0;
+
+  --c-success: #7fdcb0;
+  --c-on-success: #003823;
+  --c-success-container: #0f4a35;
+  --c-on-success-container: #c9f0dc;
+
+  --c-risk-low: #3fc58c;
+  --c-risk-mid: #f2b233;
+  --c-risk-high: #ff6b6b;
+
+  --glass-bg: rgba(20, 28, 32, 0.78);
+  --glass-strong: rgba(22, 30, 34, 0.94);
+  --glass-border: rgba(123, 209, 250, 0.14);
+  --scrim: rgba(2, 6, 8, 0.66);
+
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.4);
+  --shadow-md: 0 8px 22px -8px rgba(0, 0, 0, 0.6);
+  --shadow-lg: 0 20px 44px -16px rgba(0, 0, 0, 0.75);
+  --glow: 0 0 0 3px rgba(123, 209, 250, 0.22);
+}

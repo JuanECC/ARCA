@@ -14,3 +14,10 @@
 - **Aporte de Codex.** Creó las carpetas por módulo y actualizó el README con sus responsabilidades.
 - **Decisión.** Reservar un módulo de autenticación común y un panel de administración dedicado al registro de cuentas ciudadanas. Ubicar las operaciones privilegiadas y las reglas de acceso en Firebase.
 - **Verificación.** Se revisaron las rutas y el diff. La primera interfaz se implementará en el módulo de login.
+
+## 2026-11-11 · Módulo de acceso
+
+- **Solicitud.** Crear registro con correo y contraseña, generar un usuario, iniciar sesión con ese usuario y abrir un panel por rol.
+- **Aporte de Codex.** Implementó la interfaz React con los cuatro CSS adjuntos como base visual, Firebase Auth, la correspondencia privada de usuario a correo y el aprovisionamiento administrativo.
+- **Decisión.** El registro público asigna Ciudadanía. Administración selecciona el rol al crear cuentas ciudadanas o institucionales. La primera cuenta de administración se configura mediante un comando privilegiado. Los tres paneles operativos contienen sus vistas iniciales.
+- **Verificación.** Compilación de Vite y sintaxis de Functions correctas. En los emuladores se comprobó el registro, el login de los cuatro roles, el rechazo de contraseña incorrecta, los permisos de administración y el listado de cuentas.

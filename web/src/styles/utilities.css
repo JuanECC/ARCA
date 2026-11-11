@@ -1,0 +1,93 @@
+/* Contenedor de página */
+.page {
+  width: 100%;
+  max-width: var(--content-max);
+  margin-inline: auto;
+  padding: var(--space-6) var(--gutter) var(--space-8);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-6);
+}
+
+.page--narrow {
+  max-width: 1280px;
+}
+
+/* Tonos semánticos: cada componente lee --tone (texto), --tone-bg, --tone-on
+   y --tone-fill (barras y puntos; solo difiere en ámbar, más vivo que su texto). */
+.tone-primary { --tone: var(--c-primary); --tone-bg: var(--c-primary-container); --tone-on: var(--c-on-primary-container); --tone-fill: var(--c-primary); }
+.tone-secondary { --tone: var(--c-secondary); --tone-bg: var(--c-secondary-container); --tone-on: var(--c-on-secondary-container); --tone-fill: var(--c-secondary); }
+.tone-tertiary { --tone: var(--c-tertiary); --tone-bg: var(--c-tertiary-container); --tone-on: var(--c-on-tertiary-container); --tone-fill: var(--c-tertiary); }
+.tone-error { --tone: var(--c-error); --tone-bg: var(--c-error-container); --tone-on: var(--c-on-error-container); --tone-fill: var(--c-error); }
+.tone-warning { --tone: var(--c-warning); --tone-bg: var(--c-warning-container); --tone-on: var(--c-on-warning-container); --tone-fill: var(--c-risk-mid); }
+.tone-success { --tone: var(--c-success); --tone-bg: var(--c-success-container); --tone-on: var(--c-on-success-container); --tone-fill: var(--c-success); }
+.tone-neutral { --tone: var(--c-on-surface-variant); --tone-bg: var(--c-surface-high); --tone-on: var(--c-on-surface-variant); --tone-fill: var(--c-on-surface-variant); }
+
+.text-tone { color: var(--tone); }
+
+/* Números tabulares: cifras alineadas sin recurrir a fuentes monoespaciadas */
+.num {
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: 'tnum';
+}
+
+/* Etiqueta pequeña en mayúsculas */
+.eyebrow {
+  font-size: var(--text-2xs);
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--c-on-surface-variant);
+}
+
+.muted {
+  color: var(--c-on-surface-variant);
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* Punto de estado con pulso */
+.live-dot {
+  position: relative;
+  display: inline-block;
+  width: 0.5rem;
+  height: 0.5rem;
+  border-radius: var(--radius-full);
+  background: var(--tone-fill, var(--tone, var(--c-primary)));
+  flex-shrink: 0;
+}
+
+.live-dot::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: inherit;
+  animation: ping 1.6s var(--ease) infinite;
+}
+
+@keyframes ping {
+  75%,
+  100% {
+    transform: scale(2.4);
+    opacity: 0;
+  }
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+.spin {
+  animation: spin 1s linear infinite;
+}
