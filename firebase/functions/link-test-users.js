@@ -1,4 +1,5 @@
 const project = 'arca-e7c40';
+process.env.GCLOUD_PROJECT ??= project;
 if (process.env.GCLOUD_PROJECT !== project
     || process.env.FIREBASE_AUTH_EMULATOR_HOST
     || process.env.FIRESTORE_EMULATOR_HOST) {
