@@ -106,3 +106,14 @@ $env:VITE_FIREBASE_PROJECT_ID = 'demo-arca'
 $env:VITE_FIREBASE_API_KEY = 'demo-key'
 npm run dev --prefix web -- --host 127.0.0.1 --port 5174
 ```
+
+### Vincular cuentas creadas en la consola de ARCA
+
+Para las cuatro cuentas de prueba dadas de alta manualmente en Authentication de `arca-e7c40`, habilita el proveedor Correo/Contraseña y configura Firestore. Usa una terminal con credenciales de Google para el Admin SDK que tengan acceso a Auth y Firestore en ese proyecto. Ejecuta el comando con los emuladores desactivados.
+
+```powershell
+$env:GCLOUD_PROJECT = 'arca-e7c40'
+npm run link-test-users --prefix firebase/functions
+```
+
+El comando comprueba los cuatro correos antes de asignar los roles, conserva las contraseñas e imprime los nombres de usuario para el login. Si ya existe una vinculación válida, muestra el mismo nombre de usuario. Para probar la app contra el proyecto real también deben estar desplegadas las funciones de acceso.
