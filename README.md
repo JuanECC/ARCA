@@ -6,7 +6,7 @@ Proyecto para el Reto 3 del hackathon, Agua y lluvia. Busca conectar a la ciudad
 
 ## Estado
 
-El módulo de acceso incluye registro ciudadano, login por nombre de usuario y cuatro paneles según el rol. Administración puede crear y consultar cuentas. Los paneles de reportes, agua y Protección Civil son vistas iniciales para sus respectivos módulos.
+El módulo de acceso incluye registro ciudadano, inicio de sesión por correo y contraseña y cuatro paneles según el rol. Administración puede crear y consultar cuentas. Los paneles de reportes, agua y Protección Civil son vistas iniciales para sus respectivos módulos.
 
 ## Estructura
 
@@ -29,7 +29,7 @@ El módulo de acceso incluye registro ciudadano, login por nombre de usuario y c
 | `firebase/functions/` | Operaciones de backend, como el registro autorizado de cuentas. |
 | `firebase/rules/` | Reglas de acceso de Firestore y Storage. |
 
-Firebase Auth conserva el correo y la contraseña. El backend genera un usuario único y asigna el rol a la cuenta mediante custom claims. El registro público siempre asigna Ciudadanía. El panel de Administración permite elegir Ciudadanía, Operación de Agua o Protección Civil. Las cuentas institucionales se aprovisionan con los correos autorizados por el equipo.
+Firebase Authentication gestiona el acceso con correo y contraseña. Cada perfil se guarda en Firestore en la colección `usuarios` con un campo `tipo` de valor `comun` o `fijo`. Las reglas de Firestore protegen la lectura de perfiles y reservan la creación institucional a la cuenta administradora autorizada.
 
 
 La primera demo funcional recorrerá un reporte de fuga desde su captura hasta el cambio a «en atención» por el organismo operador y la consulta del estado por el ciudadano.
@@ -52,78 +52,15 @@ Los roles institucionales se asignarán por un mecanismo autorizado. Las reglas 
 
 ## Ejecutar el módulo de acceso
 
-Instala Node.js 22 (22.12 o posterior), un JDK 21 o posterior para Firestore y el CLI oficial de Firebase. Desde la raíz instala las dependencias y arranca los emuladores.
+Instala Node.js 22.12 o posterior. Desde la raíz del proyecto instala las dependencias y arranca la aplicación.
 
-```powershell
+```bash
 npm ci --prefix web
-npm ci --prefix firebase/functions
-npx firebase-tools emulators:start --project demo-arca --only auth,firestore,functions
+npm run dev
 ```
 
-En una segunda terminal inicia Vite conectado al proyecto de prueba.
+Crea `web/.env.local` con los valores de configuración web de Firebase indicados en `web/.env.example`. Habilita Correo/Contraseña en Firebase Authentication y crea una base Firestore. El acceso utiliza el plan gratuito de Firebase dentro de sus cuotas.
 
-```powershell
-$env:VITE_FIREBASE_EMULATORS = 'true'
-npm run dev --prefix web
-```
+El registro ciudadano solicita nombre, correo y contraseña. Los perfiles se crean en `usuarios/{uid}` y se distinguen con `tipo: comun` o `tipo: fijo`. El administrador puede crear cuentas ciudadanas, de Operación de Agua y de Protección Civil. Cada usuario solo puede leer su perfil y la cuenta administradora autorizada puede consultar los perfiles.
 
-Para probar Administración, crea una cuenta con correo y contraseña de prueba en **Authentication** en la consola local del emulador. Después asigna el rol y obtén su nombre de usuario desde otra terminal.
-
-```powershell
-$env:GCLOUD_PROJECT = 'demo-arca'
-$env:FIREBASE_AUTH_EMULATOR_HOST = '127.0.0.1:9099'
-$env:FIRESTORE_EMULATOR_HOST = '127.0.0.1:8080'
-npm run bootstrap-admin --prefix firebase/functions -- admin@example.test
-```
-
-En un proyecto real, habilita el proveedor Correo/Contraseña, crea Firestore y completa los archivos de configuración locales a partir de `web/.env.example` y `firebase/functions/.env.example`. La cuenta de servicio de Functions necesita acceso a Auth y Firestore y permiso para firmar tokens personalizados. Ejecuta el aprovisionamiento inicial con credenciales administrativas de Google y el ID del proyecto. Las cuentas institucionales se crean desde Administración antes de entregar el acceso a sus titulares. El repositorio no contiene credenciales ni cuentas precargadas.
-
-Consulta la documentación de [tokens personalizados de Firebase](https://firebase.google.com/docs/auth/admin/create-custom-tokens).
-
-### Cuentas fijas para pruebas locales
-
-Con los emuladores activos, crea una cuenta de cada rol en el proyecto local.
-
-```powershell
-$env:GCLOUD_PROJECT = 'demo-arca'
-$env:FIREBASE_AUTH_EMULATOR_HOST = '127.0.0.1:9099'
-$env:FIRESTORE_EMULATOR_HOST = '127.0.0.1:8080'
-npm run seed-demo --prefix firebase/functions
-```
-
-| Rol | Usuario de prueba |
-| --- | --- |
-| Ciudadanía | `ciudadano-000000000001` |
-| Administración | `admin-000000000002` |
-| Operación de Agua | `agua-000000000003` |
-| Protección Civil | `proteccioncivil-000000000004` |
-
-La contraseña local para las cuatro cuentas es `HidroDemo2026!`. Vuelve a ejecutar el comando al iniciar los emuladores sin datos guardados. Para que Vite use los emuladores aunque exista un archivo `web/.env.local` del proyecto real, inicia la app con estas variables en la terminal.
-
-```powershell
-$env:VITE_FIREBASE_EMULATORS = 'true'
-$env:VITE_FIREBASE_PROJECT_ID = 'demo-arca'
-$env:VITE_FIREBASE_API_KEY = 'demo-key'
-npm run dev --prefix web -- --host 127.0.0.1 --port 5174
-```
-
-### Vincular cuentas creadas en la consola de ARCA
-
-Para las cuatro cuentas de prueba dadas de alta manualmente en Authentication de `arca-e7c40`, habilita el proveedor Correo/Contraseña y configura Firestore. Usa una terminal con credenciales de Google para el Admin SDK que tengan acceso a Auth y Firestore en ese proyecto. Ejecuta el comando con los emuladores desactivados.
-
-```powershell
-$env:GCLOUD_PROJECT = 'arca-e7c40'
-npm run link-test-users --prefix firebase/functions
-```
-
-El comando comprueba los cuatro correos antes de asignar los roles, conserva las contraseñas e imprime los nombres de usuario para el login. Si ya existe una vinculación válida, muestra el mismo nombre de usuario. Para probar la app contra el proyecto real también deben estar desplegadas las funciones de acceso.
-
-## Acceso directo con Firebase Auth
-
-Para probar las cuentas creadas en Authentication de `arca-e7c40`, ejecuta `npm run dev` desde la raíz y abre la URL local de Vite. Inicia sesión con el correo y la contraseña que asignaste en Firebase. La interfaz dirige los cuatro correos de prueba a sus paneles. Los permisos de operaciones administrativas en el servidor siguen requiriendo roles asignados con Firebase Admin SDK.
-
-## Registro con nombre de usuario
-
-El registro ciudadano solicita nombre completo, correo y contraseña. La función de Firebase crea la cuenta, genera el nombre de usuario y guarda el perfil en Firestore en `usuarios/{uid}`. El campo `tipo` distingue `comun` y `fijo`. Las contraseñas se gestionan en Firebase Authentication. La colección privada `usernames` permite localizar la cuenta durante el acceso.
-
-La aplicación acepta el correo de las cuentas existentes durante la transición. Para activar el registro, el acceso por usuario y el alta institucional en un proyecto real, despliega las funciones y habilita Firestore con credenciales autorizadas para ese proyecto. Para vincular las cuatro cuentas creadas previamente ejecuta `npm run link-test-users` con credenciales del Admin SDK. El comando muestra sus nombres de usuario.
+Las reglas en `firebase/rules/firestore.rules` identifican por UID al administrador inicial de `arca-e7c40`. Cambiar la cuenta administradora o utilizar otro proyecto requiere actualizar y desplegar las reglas. Los tres perfiles institucionales iniciales se crean automáticamente la primera vez que sus cuentas inician sesión. Las funciones en `firebase/functions` son un prototipo anterior y no intervienen en el acceso actual.

@@ -53,3 +53,10 @@
 - **Aporte de Codex.** Agregó nombre completo al registro, acceso con usuario, perfiles en `usuarios` y clasificación por tipo. El backend exige rol administrador para crear cuentas institucionales.
 - **Verificación.** En los emuladores se verificaron el registro ciudadano, el acceso por usuario, los perfiles común y fijo y el rechazo de una creación institucional sin permiso.
 - **Pendiente.** La cuenta de Firebase CLI disponible no tiene acceso a `arca-e7c40`. La publicación de funciones y la vinculación de las cuentas existentes requieren acceso administrativo al proyecto.
+
+## 2026-11-11 · Firebase en plan gratuito
+
+- **Solicitud.** Mantener el plan gratuito y usar correo y contraseña.
+- **Aporte de Codex.** Conectó Firebase Authentication y Firestore directamente, guardó los perfiles en la colección `usuarios` y agregó reglas de acceso por UID y rol.
+- **Verificación.** Las reglas se probaron en el emulador y se publicaron en arca-e7c40. Se vincularon los perfiles de Administración, Operación de Agua y Protección Civil. En el proyecto real se verificó que un operador no puede crear un perfil administrador y que Administración puede consultar perfiles.
+- **Pendiente.** El perfil ciudadano existente se creará al iniciar sesión. La creación de cuentas desde la interfaz requiere una prueba de extremo a extremo con un correo de prueba.

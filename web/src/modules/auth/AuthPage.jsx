@@ -24,8 +24,6 @@ export function RegistrationFields() {
 export default function AuthPage() {
   const [mode, setMode] = useState('login');
   const [error, setError] = useState('');
-  const [username, setUsername] = useState('');
-  const [created, setCreated] = useState('');
   const [busy, setBusy] = useState(false);
   const registering = mode === 'register';
 
@@ -41,10 +39,7 @@ export default function AuthPage() {
     setError('');
     try {
       if (registering) {
-        const result = await register(data);
-        setUsername(result.username);
-        setCreated(result.username);
-        setMode('login');
+        await register(data);
       } else {
         await login(data);
       }
@@ -67,13 +62,12 @@ export default function AuthPage() {
           <h1 id="access-title">{registering ? 'Crea tu cuenta' : 'Inicia sesión'}</h1>
           <p className="muted">{registering
             ? 'Registra tus datos para crear tu cuenta ciudadana.'
-            : 'Ingresa con tu usuario y contraseña.'}</p>
+            : 'Ingresa con tu correo electrónico y contraseña.'}</p>
         </div>
-        {created && <p className="message success" role="status">Guarda tu usuario para ingresar: <strong>{created}</strong></p>}
         <form key={mode} onSubmit={submit}>
           {registering ? <RegistrationFields /> : (
             <>
-              <Field label="Usuario" name="username" autoComplete="username" value={username} onChange={(event) => setUsername(event.target.value)} maxLength={40} />
+              <Field label="Correo electrónico" name="email" type="email" autoComplete="email" maxLength={254} />
               <Field label="Contraseña" name="password" type="password" autoComplete="current-password" maxLength={128} />
             </>
           )}
