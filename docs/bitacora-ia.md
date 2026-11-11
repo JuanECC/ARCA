@@ -40,3 +40,9 @@
 - **Aporte de Codex.** Cambió el inicio de sesión a correo y contraseña con Firebase Auth y dirigió los correos de prueba a sus paneles.
 - **Verificación.** Compilación de Vite correcta. No se verificó el inicio de sesión contra el proyecto real desde este entorno.
 - **Alcance.** La asignación visual de paneles no concede permisos de backend. La creación administrativa de usuarios sigue condicionada a los roles de servidor.
+
+## 2026-11-11 · Estilo de acceso
+
+- **Solicitud.** Adaptar el login al estilo de los componentes compartidos del reporte ciudadano.
+- **Aporte de Codex.** Aplicó al acceso tarjetas apiladas, superficies suaves, bordes y colores del diseño de referencia, para escritorio y móvil.
+- **Verificación.** La aplicación compiló correctamente con Vite. Las funciones de Firebase no se modificaron.

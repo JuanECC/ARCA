@@ -47,17 +47,19 @@ export default function AuthPage() {
   }
 
   return (
-    <main className="access-layout">
-      <section className="access-intro" aria-label="HidroAlerta Veracruz">
+    <main className="access-page">
+      <header className="access-intro" aria-label="HidroAlerta Veracruz">
         <span className="access-brand">ARCA · Veracruz</span>
-        <p className="access-title">HidroAlerta <br />Veracruz</p>
+        <p className="access-title">HidroAlerta Veracruz</p>
         <p>Del reporte ciudadano a la acción preventiva.</p>
-      </section>
+      </header>
       <section className="card access-card" aria-labelledby="access-title">
-        <h1 id="access-title">{registering ? 'Crea tu cuenta' : 'Inicia sesión'}</h1>
-        <p className="muted">{registering
-          ? 'Regístrate con tu correo electrónico y contraseña.'
-          : 'Ingresa con tu correo electrónico y contraseña.'}</p>
+        <div className="access-card__heading">
+          <h1 id="access-title">{registering ? 'Crea tu cuenta' : 'Inicia sesión'}</h1>
+          <p className="muted">{registering
+            ? 'Regístrate con tu correo electrónico y contraseña.'
+            : 'Ingresa con tu correo electrónico y contraseña.'}</p>
+        </div>
         <form key={mode} onSubmit={submit}>
           {registering ? <RegistrationFields /> : (
             <>
@@ -66,7 +68,7 @@ export default function AuthPage() {
             </>
           )}
           {error && <p className="message error" role="alert">{error}</p>}
-          <button className="primary" disabled={busy}>{busy ? 'Procesando…' : registering ? 'Crear cuenta' : 'Entrar'}</button>
+          <button className="primary access-submit" disabled={busy}>{busy ? 'Procesando…' : registering ? 'Crear cuenta' : 'Entrar'}</button>
         </form>
         <button className="text-button" type="button" disabled={busy} onClick={switchMode}>
           {registering ? 'Volver al inicio de sesión' : 'Crear cuenta ciudadana'}
