@@ -1,5 +1,5 @@
 import { HttpsError, onCall } from 'firebase-functions/v2/https';
-import { auth, profiles, attachProfile } from './accounts.js';
+import { auth, profiles, users, attachProfile } from './accounts.js';
 
 const managedRoles = new Set(['citizen', 'water-operator', 'civil-protection']);
 const options = { maxInstances: 10 };
@@ -7,11 +7,15 @@ const options = { maxInstances: 10 };
 function credentials(data) {
   const email = typeof data?.email === 'string' ? data.email.trim().toLowerCase() : '';
   const password = data?.password;
+  const displayName = typeof data?.nombre === 'string' ? data.nombre.trim() : '';
+  if (displayName.length < 2 || displayName.length > 100) {
+    throw new HttpsError('invalid-argument', 'Ingresa un nombre de 2 a 100 caracteres.');
+  }
   if (email.length > 254 || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)
       || typeof password !== 'string' || password.length < 8 || password.length > 128) {
     throw new HttpsError('invalid-argument', 'Ingresa un correo válido y una contraseña de 8 a 128 caracteres.');
   }
-  return { email, password };
+  return { email, password, displayName };
 }
 
 async function createAccount(data, role) {
@@ -48,7 +52,7 @@ export const createManagedAccount = onCall(options, (request) => {
 export const listAccounts = onCall(options, async (request) => {
   requireAdmin(request);
   const cursor = request.data?.cursor;
-  let query = profiles.orderBy('username').limit(26);
+  let query = users.orderBy('username').limit(26);
   if (typeof cursor === 'string' && cursor.length <= 40) query = query.startAfter(cursor);
   const snapshot = await query.get();
   const accounts = snapshot.docs.slice(0, 25).map((doc) => doc.data());

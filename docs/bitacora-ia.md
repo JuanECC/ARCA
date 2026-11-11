@@ -46,3 +46,10 @@
 - **Solicitud.** Adaptar el login al estilo de los componentes compartidos del reporte ciudadano.
 - **Aporte de Codex.** Aplicó al acceso tarjetas apiladas, superficies suaves, bordes y colores del diseño de referencia, para escritorio y móvil.
 - **Verificación.** La aplicación compiló correctamente con Vite. Las funciones de Firebase no se modificaron.
+
+## 2026-11-11 · Registro y perfiles de usuarios
+
+- **Solicitud.** Crear cuentas ciudadanas con nombre de usuario y mantener los perfiles comunes y fijos en Firestore.
+- **Aporte de Codex.** Agregó nombre completo al registro, acceso con usuario, perfiles en `usuarios` y clasificación por tipo. El backend exige rol administrador para crear cuentas institucionales.
+- **Verificación.** En los emuladores se verificaron el registro ciudadano, el acceso por usuario, los perfiles común y fijo y el rechazo de una creación institucional sin permiso.
+- **Pendiente.** La cuenta de Firebase CLI disponible no tiene acceso a `arca-e7c40`. La publicación de funciones y la vinculación de las cuentas existentes requieren acceso administrativo al proyecto.

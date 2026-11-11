@@ -13,9 +13,10 @@ export function Field({ label, name, ...props }) {
 export function RegistrationFields() {
   return (
     <>
+      <Field label="Nombre completo" name="nombre" autoComplete="name" minLength={2} maxLength={100} />
       <Field label="Correo electrónico" name="email" type="email" autoComplete="email" maxLength={254} />
-      <Field label="Contraseña (mínimo 6 caracteres)" name="password" type="password"
-        autoComplete="new-password" minLength={6} maxLength={128} />
+      <Field label="Contraseña (mínimo 8 caracteres)" name="password" type="password"
+        autoComplete="new-password" minLength={8} maxLength={128} />
     </>
   );
 }
@@ -23,6 +24,8 @@ export function RegistrationFields() {
 export default function AuthPage() {
   const [mode, setMode] = useState('login');
   const [error, setError] = useState('');
+  const [username, setUsername] = useState('');
+  const [created, setCreated] = useState('');
   const [busy, setBusy] = useState(false);
   const registering = mode === 'register';
 
@@ -37,8 +40,14 @@ export default function AuthPage() {
     setBusy(true);
     setError('');
     try {
-      if (registering) await register(data);
-      else await login(data);
+      if (registering) {
+        const result = await register(data);
+        setUsername(result.username);
+        setCreated(result.username);
+        setMode('login');
+      } else {
+        await login(data);
+      }
     } catch (failure) {
       setError(accountError(failure));
     } finally {
@@ -57,13 +66,14 @@ export default function AuthPage() {
         <div className="access-card__heading">
           <h1 id="access-title">{registering ? 'Crea tu cuenta' : 'Inicia sesión'}</h1>
           <p className="muted">{registering
-            ? 'Regístrate con tu correo electrónico y contraseña.'
-            : 'Ingresa con tu correo electrónico y contraseña.'}</p>
+            ? 'Registra tus datos para crear tu cuenta ciudadana.'
+            : 'Ingresa con tu usuario y contraseña.'}</p>
         </div>
+        {created && <p className="message success" role="status">Guarda tu usuario para ingresar: <strong>{created}</strong></p>}
         <form key={mode} onSubmit={submit}>
           {registering ? <RegistrationFields /> : (
             <>
-              <Field label="Correo electrónico" name="email" type="email" autoComplete="email" maxLength={254} />
+              <Field label="Usuario" name="username" autoComplete="username" value={username} onChange={(event) => setUsername(event.target.value)} maxLength={40} />
               <Field label="Contraseña" name="password" type="password" autoComplete="current-password" maxLength={128} />
             </>
           )}

@@ -6,7 +6,7 @@ if (process.env.GCLOUD_PROJECT !== project
   throw new Error('Este comando requiere GCLOUD_PROJECT=arca-e7c40 y los emuladores desactivados.');
 }
 
-const { auth, profiles, attachProfile } = await import('./accounts.js');
+const { auth, profiles, users, attachProfile } = await import('./accounts.js');
 const assignments = [
   ['ciudadano@arca.example.com', 'citizen'],
   ['admin@arca.example.com', 'admin'],
@@ -39,5 +39,22 @@ const accounts = await Promise.all(assignments.map(async ([email, role]) => {
 
 for (const { user, role, username } of accounts) {
   const login = username ?? (await attachProfile(user, role)).username;
+  if (username) {
+    const reference = users.doc(user.uid);
+    const existing = await reference.get();
+    if (!existing.exists) {
+      await reference.create({
+        uid: user.uid,
+        email: user.email,
+        username,
+        role,
+        nombre: user.displayName || '',
+        tipo: role === 'citizen' ? 'comun' : 'fijo',
+        creadoEn: new Date(),
+      });
+    } else if (existing.data().username !== username || existing.data().role !== role) {
+      throw new Error('El perfil de usuario no coincide con la cuenta: ' + user.email);
+    }
+  }
   console.log(user.email + ' · ' + role + ' · ' + login);
 }

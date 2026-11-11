@@ -1,6 +1,6 @@
 import { initializeApp } from 'firebase/app';
 import {
-  connectAuthEmulator, createUserWithEmailAndPassword, getAuth, signInWithEmailAndPassword,
+  connectAuthEmulator, getAuth, signInWithCustomToken, signInWithEmailAndPassword,
 } from 'firebase/auth';
 import { connectFunctionsEmulator, getFunctions, httpsCallable } from 'firebase/functions';
 
@@ -27,17 +27,21 @@ export async function callAccount(name, data) {
   return (await httpsCallable(functions, name)(data)).data;
 }
 
-export async function login({ email, password }) {
-  if (!auth) throw new Error('Firebase aún no está configurado.');
-  await signInWithEmailAndPassword(auth, email.trim(), password);
+export async function login(data) {
+  if (data.username.includes('@')) {
+    await signInWithEmailAndPassword(auth, data.username.trim(), data.password);
+    return;
+  }
+  const { token } = await callAccount('loginWithUsername', data);
+  await signInWithCustomToken(auth, token);
 }
 
-export async function register({ email, password }) {
-  if (!auth) throw new Error('Firebase aún no está configurado.');
-  await createUserWithEmailAndPassword(auth, email.trim(), password);
+export async function register(data) {
+  return callAccount('registerCitizen', data);
 }
-
 export function accountError(error) {
+  if (error.code === 'functions/unauthenticated') return 'Usuario o contraseña incorrectos.';
+  if (['functions/invalid-argument', 'functions/already-exists', 'functions/unavailable'].includes(error.code)) return error.message;
   if (error.code === 'auth/invalid-credential' || error.code === 'auth/user-not-found'
       || error.code === 'auth/wrong-password') return 'Correo o contraseña incorrectos.';
   if (error.code === 'auth/email-already-in-use') return 'Ya existe una cuenta con ese correo.';

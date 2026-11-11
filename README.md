@@ -121,3 +121,9 @@ El comando comprueba los cuatro correos antes de asignar los roles, conserva las
 ## Acceso directo con Firebase Auth
 
 Para probar las cuentas creadas en Authentication de `arca-e7c40`, ejecuta `npm run dev` desde la raíz y abre la URL local de Vite. Inicia sesión con el correo y la contraseña que asignaste en Firebase. La interfaz dirige los cuatro correos de prueba a sus paneles. Los permisos de operaciones administrativas en el servidor siguen requiriendo roles asignados con Firebase Admin SDK.
+
+## Registro con nombre de usuario
+
+El registro ciudadano solicita nombre completo, correo y contraseña. La función de Firebase crea la cuenta, genera el nombre de usuario y guarda el perfil en Firestore en `usuarios/{uid}`. El campo `tipo` distingue `comun` y `fijo`. Las contraseñas se gestionan en Firebase Authentication. La colección privada `usernames` permite localizar la cuenta durante el acceso.
+
+La aplicación acepta el correo de las cuentas existentes durante la transición. Para activar el registro, el acceso por usuario y el alta institucional en un proyecto real, despliega las funciones y habilita Firestore con credenciales autorizadas para ese proyecto. Para vincular las cuatro cuentas creadas previamente ejecuta `npm run link-test-users` con credenciales del Admin SDK. El comando muestra sus nombres de usuario.
