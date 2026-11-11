@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { onIdTokenChanged, signOut } from 'firebase/auth';
 import AuthPage from '../modules/auth/AuthPage';
-import { auth, ensureProfile } from '../modules/auth/firebase';
+import { accountError, auth, ensureProfile } from '../modules/auth/firebase';
 import { roleLabels } from '../modules/auth/roles';
 import AdminPanel from '../modules/admin/AdminPanel';
 import CitizenReports from '../modules/citizen-reports/CitizenReports';
@@ -31,10 +31,10 @@ export default function App() {
       try {
         const profile = user ? await ensureProfile(user) : null;
         if (current && event === revision) setSession(profile);
-      } catch {
+      } catch (failure) {
         if (current && event === revision) {
           setSession({});
-          setError('No se pudo comprobar tu sesión. Vuelve a iniciar sesión.');
+          setError(accountError(failure));
         }
       }
     });
@@ -61,7 +61,7 @@ export default function App() {
         <div>
           <p className="eyebrow">HidroAlerta Veracruz</p>
           <h1>{Panel ? roleLabels[session.role] : 'Acceso pendiente'}</h1>
-          {session.username && <p className="muted">{session.username}</p>}
+          <p className="muted">{session.nombre || session.email}</p>
         </div>
         <button className="text-button" onClick={logout}>Cerrar sesión</button>
       </header>

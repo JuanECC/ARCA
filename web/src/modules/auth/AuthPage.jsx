@@ -14,6 +14,7 @@ export function RegistrationFields() {
   return (
     <>
       <Field label="Nombre completo" name="nombre" autoComplete="name" minLength={2} maxLength={100} />
+      <p className="muted small">Usarás tu nombre completo para iniciar sesión. Agrega tus apellidos para distinguir tu cuenta.</p>
       <Field label="Correo electrónico" name="email" type="email" autoComplete="email" maxLength={254} />
       <Field label="Contraseña (mínimo 8 caracteres)" name="password" type="password"
         autoComplete="new-password" minLength={8} maxLength={128} />
@@ -62,12 +63,12 @@ export default function AuthPage() {
           <h1 id="access-title">{registering ? 'Crea tu cuenta' : 'Inicia sesión'}</h1>
           <p className="muted">{registering
             ? 'Registra tus datos para crear tu cuenta ciudadana.'
-            : 'Ingresa con tu correo electrónico y contraseña.'}</p>
+            : 'Ingresa con tu nombre de usuario y contraseña.'}</p>
         </div>
         <form key={mode} onSubmit={submit}>
           {registering ? <RegistrationFields /> : (
             <>
-              <Field label="Correo electrónico" name="email" type="email" autoComplete="email" maxLength={254} />
+              <Field label="Nombre de usuario" name="usuario" autoComplete="username" autoCapitalize="none" maxLength={100} />
               <Field label="Contraseña" name="password" type="password" autoComplete="current-password" maxLength={128} />
             </>
           )}

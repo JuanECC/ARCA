@@ -37,7 +37,7 @@ export default function AdminPanel() {
     try {
       const data = Object.fromEntries(new FormData(form));
       const result = await callAccount('createManagedAccount', data);
-      setCreated(result.email);
+      setCreated(result.nombre);
       form.reset();
       await load();
     } catch (error) {
@@ -79,6 +79,7 @@ export default function AdminPanel() {
             {accounts.map((account) => (
               <li key={account.uid}>
                 <strong>{account.nombre || account.email}</strong>
+                <span className="muted">Usuario: {account.usuario}</span>
                 <span className="muted">{account.email} · {roleLabels[account.role]}</span>
               </li>
             ))}

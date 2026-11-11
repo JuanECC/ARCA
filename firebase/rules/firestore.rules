@@ -5,11 +5,19 @@ service cloud.firestore {
       return request.auth != null && request.auth.uid == 'lJ9W2QteobbETqMoPBonAFfzMgh1';
     }
     function validProfile(uid) {
-      return request.resource.data.keys().hasOnly(['uid', 'email', 'nombre', 'role', 'tipo', 'creadoEn', 'operadorUid'])
-        && request.resource.data.keys().hasAll(['uid', 'email', 'nombre', 'role', 'tipo', 'creadoEn'])
+      return request.resource.data.keys().hasOnly(['uid', 'email', 'authEmail', 'nombre', 'usuario', 'role', 'tipo', 'creadoEn', 'operadorUid'])
+        && request.resource.data.keys().hasAll(['uid', 'email', 'authEmail', 'nombre', 'usuario', 'role', 'tipo', 'creadoEn'])
         && request.resource.data.uid == uid
         && request.resource.data.email is string
+        && request.resource.data.email.size() <= 254
+        && request.resource.data.email.matches('[^ @]+@[^ @]+[.][^ @]+')
+        && request.resource.data.usuario is string
+        && request.resource.data.usuario.size() >= 2
+        && request.resource.data.usuario.size() <= 64
+        && request.resource.data.usuario.matches('[a-z0-9]+(-[a-z0-9]+)*')
+        && request.resource.data.authEmail == request.resource.data.usuario + '@usuarios.arca.example.com'
         && request.resource.data.nombre is string
+        && request.resource.data.nombre.size() >= 2
         && request.resource.data.nombre.size() <= 100
         && request.resource.data.creadoEn == request.time
         && (request.resource.data.role != 'maintenance-crew' || request.resource.data.operadorUid == 'WePWGhGitzWeggBe76Z8Av4o3yH3')
@@ -27,9 +35,10 @@ service cloud.firestore {
       allow list: if isAdmin();
       allow create: if request.auth != null && validProfile(uid)
         && (isAdmin() || (request.auth.uid == uid
-          && request.resource.data.email == request.auth.token.email
+          && request.resource.data.authEmail == request.auth.token.email
           && (request.resource.data.role == 'citizen' || fixedRole(uid))));
-      allow update, delete: if false;
+      allow update: if false;
+      allow delete: if false;
     }
     match /{document=**} {
       allow read, write: if false;
