@@ -6,7 +6,7 @@ Proyecto para el Reto 3 del hackathon, Agua y lluvia. Busca conectar a la ciudad
 
 ## Estado
 
-El proyecto está en el módulo de arranque. La aplicación, Firebase y las integraciones externas están pendientes de implementación. Esta entrega contiene la estructura inicial y la documentación.
+El proyecto está en el módulo de arranque. La aplicación, Firebase y las integraciones externas están pendientes de implementación. Esta entrega define las carpetas de cada módulo y su responsabilidad.
 
 ## Estructura
 
@@ -18,11 +18,19 @@ El proyecto está en el módulo de arranque. La aplicación, Firebase y las inte
 
 ## Desarrollo por módulos
 
-1. **Arranque.** Estructura, documentación y control de versiones.
-2. **Reporte y seguimiento.** Autenticación, permisos por rol, captura de texto, foto opcional y ubicación, persistencia, mapa y actualización institucional de estado.
-3. **Asistencia con IA.** Clasificación y gravedad sugeridas desde el backend, revisión humana y manejo de errores sin perder el reporte.
-4. **Prevención por lluvia.** Consulta meteorológica, indicador experimental explicable y avisos emitidos por Protección Civil.
-5. **Servicios complementarios.** Tandeos, guías y estadísticas según el tiempo disponible.
+| Carpeta | Responsabilidad prevista |
+| --- | --- |
+| `web/src/app/` | Entrada de la aplicación, navegación y rutas por rol. |
+| `web/src/modules/auth/` | Primera interfaz del proyecto. Inicio de sesión para ciudadanía, operadores de agua, Protección Civil y administración. |
+| `web/src/modules/admin/` | Panel para que administración registre cuentas de ciudadanía. |
+| `web/src/modules/citizen-reports/` | Panel ciudadano para crear reportes y consultar su historial y estado. |
+| `web/src/modules/water-operations/` | Panel para gestionar fugas, desabasto y otras incidencias de suministro. |
+| `web/src/modules/civil-protection/` | Panel para revisar reportes de lluvia e inundación y gestionar avisos de su competencia. |
+| `firebase/functions/` | Operaciones de backend, como el registro autorizado de cuentas. |
+| `firebase/rules/` | Reglas de acceso de Firestore y Storage. |
+
+El primer módulo de implementación será el login. La navegación usará el rol asignado a la cuenta y el backend verificará los permisos de cada operación. Después se implementarán el registro administrativo y los paneles.
+
 
 La primera demo funcional recorrerá un reporte de fuga desde su captura hasta el cambio a «en atención» por el organismo operador y la consulta del estado por el ciudadano.
 
