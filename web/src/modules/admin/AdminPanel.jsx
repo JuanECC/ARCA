@@ -58,6 +58,7 @@ export default function AdminPanel() {
               <option value="" disabled>Selecciona un rol</option>
               <option value="citizen">Ciudadanía</option>
               <option value="water-operator">Operación de Agua</option>
+              <option value="maintenance-crew">Cuadrilla de mantenimiento</option>
               <option value="civil-protection">Protección Civil</option>
             </select>
           </label>

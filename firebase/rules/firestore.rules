@@ -5,20 +5,22 @@ service cloud.firestore {
       return request.auth != null && request.auth.uid == 'lJ9W2QteobbETqMoPBonAFfzMgh1';
     }
     function validProfile(uid) {
-      return request.resource.data.keys().hasOnly(['uid', 'email', 'nombre', 'role', 'tipo', 'creadoEn'])
+      return request.resource.data.keys().hasOnly(['uid', 'email', 'nombre', 'role', 'tipo', 'creadoEn', 'operadorUid'])
         && request.resource.data.keys().hasAll(['uid', 'email', 'nombre', 'role', 'tipo', 'creadoEn'])
         && request.resource.data.uid == uid
         && request.resource.data.email is string
         && request.resource.data.nombre is string
         && request.resource.data.nombre.size() <= 100
         && request.resource.data.creadoEn == request.time
+        && (request.resource.data.role != 'maintenance-crew' || request.resource.data.operadorUid == 'WePWGhGitzWeggBe76Z8Av4o3yH3')
         && ((request.resource.data.role == 'citizen' && request.resource.data.tipo == 'comun')
-          || (request.resource.data.role in ['admin', 'water-operator', 'civil-protection'] && request.resource.data.tipo == 'fijo'));
+          || (request.resource.data.role in ['admin', 'water-operator', 'civil-protection', 'maintenance-crew'] && request.resource.data.tipo == 'fijo'));
     }
     function fixedRole(uid) {
       return (uid == 'lJ9W2QteobbETqMoPBonAFfzMgh1' && request.resource.data.role == 'admin')
         || (uid == 'WePWGhGitzWeggBe76Z8Av4o3yH3' && request.resource.data.role == 'water-operator')
-        || (uid == '0MgDjIllJTWIgLPyKCjA7EQNBSw1' && request.resource.data.role == 'civil-protection');
+        || (uid == '0MgDjIllJTWIgLPyKCjA7EQNBSw1' && request.resource.data.role == 'civil-protection')
+        || (uid == '6K9PgDGfgrhjn6wWTXQgvMzA8BB2' && request.resource.data.role == 'maintenance-crew');
     }
     match /usuarios/{uid} {
       allow get: if request.auth != null && (request.auth.uid == uid || isAdmin());

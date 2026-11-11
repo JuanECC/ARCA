@@ -31,6 +31,7 @@ if (app && emulator) {
 }
 
 const fixedRoles = {
+  '6K9PgDGfgrhjn6wWTXQgvMzA8BB2': 'maintenance-crew',
   lJ9W2QteobbETqMoPBonAFfzMgh1: 'admin',
   WePWGhGitzWeggBe76Z8Av4o3yH3: 'water-operator',
   '0MgDjIllJTWIgLPyKCjA7EQNBSw1': 'civil-protection',
@@ -50,6 +51,7 @@ export async function ensureProfile(user) {
       await setDoc(reference, {
         uid: user.uid, email: user.email, nombre: user.displayName || '',
         role, tipo: role === 'citizen' ? 'comun' : 'fijo', creadoEn: serverTimestamp(),
+        ...(role === 'maintenance-crew' ? { operadorUid: 'WePWGhGitzWeggBe76Z8Av4o3yH3' } : {}),
       });
     } catch (error) {
       snapshot = await getDoc(reference);
@@ -69,6 +71,7 @@ async function createAccount(data, role, administrative) {
   try {
     await setDoc(doc(administrative ? db : secondaryDb, 'usuarios', credential.user.uid), {
       uid: credential.user.uid, email, nombre, role,
+      ...(role === 'maintenance-crew' ? { operadorUid: 'WePWGhGitzWeggBe76Z8Av4o3yH3' } : {}),
       tipo: role === 'citizen' ? 'comun' : 'fijo', creadoEn: serverTimestamp(),
     });
   } catch (error) {

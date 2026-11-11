@@ -60,3 +60,9 @@
 - **Aporte de Codex.** Conectó Firebase Authentication y Firestore directamente, guardó los perfiles en la colección `usuarios` y agregó reglas de acceso por UID y rol.
 - **Verificación.** Las reglas se probaron en el emulador y se publicaron en arca-e7c40. Se vincularon los perfiles de Administración, Operación de Agua y Protección Civil. En el proyecto real se verificó que un operador no puede crear un perfil administrador y que Administración puede consultar perfiles.
 - **Pendiente.** El perfil ciudadano existente se creará al iniciar sesión. La creación de cuentas desde la interfaz requiere una prueba de extremo a extremo con un correo de prueba.
+
+## 2026-11-11 · Cuadrilla de mantenimiento
+
+- **Solicitud.** Vincular los cinco UID proporcionados, incluyendo Cuadrilla de mantenimiento.
+- **Aporte de Codex.** Guardó los perfiles de Ciudadanía y Cuadrilla en Firestore, verificó los tres perfiles institucionales existentes y vinculó Cuadrilla con Operación de Agua mediante operadorUid. Agregó el rol y la pantalla inicial del módulo.
+- **Verificación.** Las reglas se publicaron correctamente y los cinco perfiles se leyeron del proyecto real. Vite compiló la aplicación.

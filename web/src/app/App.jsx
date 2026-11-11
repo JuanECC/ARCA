@@ -8,7 +8,10 @@ import CitizenReports from '../modules/citizen-reports/CitizenReports';
 import WaterOperations from '../modules/water-operations/WaterOperations';
 import CivilProtection from '../modules/civil-protection/CivilProtection';
 
+import MaintenanceCrew from '../modules/maintenance-crew/MaintenanceCrew';
+
 const panels = new Map([
+  ['maintenance-crew', MaintenanceCrew],
   ['admin', AdminPanel],
   ['citizen', CitizenReports],
   ['water-operator', WaterOperations],
