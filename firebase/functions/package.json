@@ -3,7 +3,8 @@
   "version": "1.0.0",
   "main": "index.js",
   "scripts": {
-    "bootstrap-admin": "node bootstrap-admin.js"
+    "bootstrap-admin": "node bootstrap-admin.js",
+    "seed-demo": "node seed-demo-users.js"
   },
   "type": "module",
   "engines": {

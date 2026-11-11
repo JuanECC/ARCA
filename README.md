@@ -79,3 +79,30 @@ npm run bootstrap-admin --prefix firebase/functions -- admin@example.test
 En un proyecto real, habilita el proveedor Correo/Contraseña, crea Firestore y completa los archivos de configuración locales a partir de `web/.env.example` y `firebase/functions/.env.example`. La cuenta de servicio de Functions necesita acceso a Auth y Firestore y permiso para firmar tokens personalizados. Ejecuta el aprovisionamiento inicial con credenciales administrativas de Google y el ID del proyecto. Las cuentas institucionales se crean desde Administración antes de entregar el acceso a sus titulares. El repositorio no contiene credenciales ni cuentas precargadas.
 
 Consulta la documentación de [tokens personalizados de Firebase](https://firebase.google.com/docs/auth/admin/create-custom-tokens).
+
+### Cuentas fijas para pruebas locales
+
+Con los emuladores activos, crea una cuenta de cada rol en el proyecto local.
+
+```powershell
+$env:GCLOUD_PROJECT = 'demo-arca'
+$env:FIREBASE_AUTH_EMULATOR_HOST = '127.0.0.1:9099'
+$env:FIRESTORE_EMULATOR_HOST = '127.0.0.1:8080'
+npm run seed-demo --prefix firebase/functions
+```
+
+| Rol | Usuario de prueba |
+| --- | --- |
+| Ciudadanía | `ciudadano-000000000001` |
+| Administración | `admin-000000000002` |
+| Operación de Agua | `agua-000000000003` |
+| Protección Civil | `proteccioncivil-000000000004` |
+
+La contraseña local para las cuatro cuentas es `HidroDemo2026!`. Vuelve a ejecutar el comando al iniciar los emuladores sin datos guardados. Para que Vite use los emuladores aunque exista un archivo `web/.env.local` del proyecto real, inicia la app con estas variables en la terminal.
+
+```powershell
+$env:VITE_FIREBASE_EMULATORS = 'true'
+$env:VITE_FIREBASE_PROJECT_ID = 'demo-arca'
+$env:VITE_FIREBASE_API_KEY = 'demo-key'
+npm run dev --prefix web -- --host 127.0.0.1 --port 5174
+```
