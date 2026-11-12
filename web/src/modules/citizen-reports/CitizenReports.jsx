@@ -16,6 +16,7 @@
 import { useEffect, useState } from 'react';
 import { CircleMarker, MapContainer, TileLayer, Popup, Tooltip, useMap, useMapEvents } from 'react-leaflet';
 import { auth } from '../auth/firebase';
+import { collection, getFirestore, onSnapshot, query, where } from 'firebase/firestore';
 import CitizenProfile from './CitizenProfile';
 import CitizenTandeo from './CitizenTandeo';
 import { isCitizenProfileComplete, saveCitizenProfile, subscribeCitizenProfile } from './profileService';
@@ -23,6 +24,7 @@ import { REPORT_TYPES, subscribeReports, createCitizenReport, getCurrentLocation
 import 'leaflet/dist/leaflet.css';
 import './CitizenReports.css';
 import './CitizenLayout.css';
+import './CitizenCivilAlerts.css';
 
 /* =========================================================================
  * 1. DATOS DE EJEMPLO (se reemplazan por los de la base de datos)
@@ -325,7 +327,7 @@ function FlyTo({ colonia }) {
   return null;
 }
 
-function RiskMap({ theme, colonias, fugas, drenajes, reports, focus, onSelect }) {
+function RiskMap({ theme, colonias, fugas, drenajes, reports, civilAlerts = [], sectorNames = {}, focus, onSelect }) {
   const [layer, setLayer] = useState('reports');
 
   // Las capas se alimentan de los reportes reales, no de arreglos vacíos.
@@ -335,6 +337,7 @@ function RiskMap({ theme, colonias, fugas, drenajes, reports, focus, onSelect })
     if (layer === 'drains') return r.tipo === 'drenaje';
     return ['inundacion', 'encharcamiento'].includes(r.tipo);
   });
+  const visiblePcAlerts = civilAlerts.filter(a => layer === 'risk' || layer === 'reports');
   const points = categoryReports
     .filter(r => Number.isFinite(r.ubicacion?.lat) && Number.isFinite(r.ubicacion?.lng))
     .map(r => ({
@@ -355,7 +358,7 @@ function RiskMap({ theme, colonias, fugas, drenajes, reports, focus, onSelect })
         ))}
       </div>
 
-      <p className="ha-soft ha-layer-count">{categoryReports.length} incidencia(s) en esta categoría</p>
+      <p className="ha-soft ha-layer-count">{categoryReports.length + visiblePcAlerts.length} incidencia(s) y alerta(s) en esta categoría</p>
       <div className={`ha-map ha-map--${theme}`}>
 
         <MapContainer center={MAP_CENTER} zoom={13} scrollWheelZoom={false} className="ha-map__canvas">
@@ -364,6 +367,31 @@ function RiskMap({ theme, colonias, fugas, drenajes, reports, focus, onSelect })
             attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
           />
           <FlyTo colonia={focus} />
+          {visiblePcAlerts.filter(a => Number.isFinite(a.position?.lat) && Number.isFinite(a.position?.lng)).map(a => {
+            const controlled = a.estado === 'controlado';
+            const sector = sectorNames[a.sectorId] || 'Sector no disponible';
+            return (
+              <CircleMarker
+                key={`pc-${a.id}`}
+                center={[a.position.lat, a.position.lng]}
+                radius={13}
+                className={controlled ? 'ha-pc-marker ha-pc-marker--controlled' : 'ha-pc-marker ha-pc-marker--active'}
+                pathOptions={{ color: controlled ? '#168956' : '#d92d35', fillColor: controlled ? '#168956' : '#d92d35', fillOpacity: .65, weight: 3 }}
+              >
+                <Tooltip direction="top">{controlled ? '✅ Riesgo controlado' : '🚨 Alerta activa'} · {a.title}</Tooltip>
+                <Popup minWidth={230}>
+                  <div className="ha-report-popup">
+                    <strong>{controlled ? '✅ Riesgo controlado por Protección Civil' : '🚨 Alerta oficial de Protección Civil'}</strong>
+                    <p><b>{a.title}</b></p>
+                    <p>{a.message}</p>
+                    <p><b>Sector afectado:</b> {sector}</p>
+                    <p><b>Publicado por:</b> {a.reporter || 'Departamento de Protección Civil'}</p>
+                    <p><b>Estado:</b> {controlled ? 'Controlado · Publicación vigente' : 'Alerta activa'}</p>
+                  </div>
+                </Popup>
+              </CircleMarker>
+            );
+          })}
           {points.map((p) => (
             <CircleMarker
               key={p.id}
@@ -572,6 +600,9 @@ export default function CitizenReports({ onLogout, profile: account }) {
   const { toasts, notify, dismiss } = useToasts();
   const [focus, setFocus] = useState(null);
   const [reports, setReports] = useState([]);
+  const [civilNotices, setCivilNotices] = useState([]);
+  const [civilNoticesError, setCivilNoticesError] = useState('');
+  const [sectorNames, setSectorNames] = useState({});
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [formOpen, setFormOpen] = useState(false);
@@ -603,6 +634,26 @@ export default function CitizenReports({ onLogout, profile: account }) {
     data => { setReports(data); setLoading(false); setError(''); },
     err => { setError(err.code === 'permission-denied' ? 'Las reglas de Firestore no permiten consultar los reportes.' : err.message); setLoading(false); }
   ), []);
+  // Las alertas oficiales se publican en 'notices', no en 'reportes'.
+  // audience === 'todos' es visible para cualquier sector ciudadano.
+  useEffect(() => {
+    if (!auth?.app) return;
+    const db = getFirestore(auth.app);
+    return onSnapshot(collection(db, 'notices'), snapshot => {
+      setCivilNotices(snapshot.docs.map(item => ({ id: item.id, ...item.data() }))
+        .filter(item => item.kind === 'alerta-proteccion-civil' && item.audience === 'todos')
+        .sort((a, b) => (b.creadoEn?.seconds || 0) - (a.creadoEn?.seconds || 0)));
+      setCivilNoticesError('');
+    }, err => setCivilNoticesError(`No se pudieron consultar las alertas oficiales: ${err.message}`));
+  }, []);
+  // Sectores públicos activos: traduce los IDs de Firestore a nombres visibles.
+  useEffect(() => {
+    if (!auth?.app) return;
+    const db = getFirestore(auth.app);
+    return onSnapshot(query(collection(db, 'sectors'), where('active', '==', true)),
+      snapshot => setSectorNames(Object.fromEntries(snapshot.docs.map(d => [d.id, d.data().name || 'Sector sin nombre']))),
+      err => console.warn('No se pudieron cargar los nombres de sectores:', err));
+  }, []);
   const currentUid = auth?.currentUser?.uid;
   const mine = reports.filter(r => r.usuarioUid === currentUid);
   const evidencias = reports.filter(r => r.fotoBase64).slice(0, 6).map(r => ({
@@ -634,6 +685,20 @@ export default function CitizenReports({ onLogout, profile: account }) {
         <h3>Avisos de seguimiento</h3>
         {alerts.length ? alerts.map(a => <p key={a.id}><strong>{a.title}:</strong> {a.detail}</p>) : <p className="ha-soft">Todavía no hay cambios de estado que notificar. Los avisos de tandeos y riesgos requieren sus colecciones y reglas correspondientes.</p>}
       </section>}
+      {civilNotices.length > 0 && <section className="ha-civil-alerts" role="region" aria-label="Alertas oficiales de Protección Civil">
+        <div className="ha-civil-alerts__head">
+          <div><strong>🚨 Alertas de Protección Civil</strong><span>{civilNotices.length} aviso(s) oficiales publicados</span></div>
+          <span className="ha-civil-alerts__live">Información en tiempo real</span>
+        </div>
+        <div className="ha-civil-alerts__list">
+          {civilNotices.slice(0, 5).map(a => <article key={a.id} className={`ha-civil-alert ${a.estado === 'controlado' ? 'ha-civil-alert--controlled' : ''}`}>
+            <div className="ha-civil-alert__heading"><strong>{a.title}</strong><span>{a.estado === 'controlado' ? 'Riesgo controlado' : a.level ? `Riesgo: ${a.level}` : 'Alerta oficial'}</span></div>
+            <p>{a.message}</p>
+            <small>{a.reporter || 'Departamento de Protección Civil'} · {sectorNames[a.sectorId] || 'Sector no disponible'} · {a.creadoEn?.toDate?.().toLocaleString('es-MX') || 'Reciente'}</small>
+          </article>)}
+        </div>
+      </section>}
+      {civilNoticesError && <p className="ha-report-error" role="alert">{civilNoticesError}</p>}
       {formOpen && profileComplete && <ReportForm onClose={() => setFormOpen(false)} onCreated={() => setFormOpen(false)} notify={notify}/>}
       {loading && <p className="ha-soft">Cargando reportes...</p>}
       {error && <p role="alert" className="ha-report-error">{error}</p>}
@@ -643,7 +708,7 @@ export default function CitizenReports({ onLogout, profile: account }) {
           <CitizenTandeo profile={citizenProfile} />
         </div>
         <div className="ha-overview__map">
-          <RiskMap theme={theme} colonias={[]} fugas={[]} drenajes={[]} reports={reports} focus={focus} onSelect={setFocus}/>
+          <RiskMap theme={theme} colonias={[]} fugas={[]} drenajes={[]} reports={reports} civilAlerts={civilNotices} sectorNames={sectorNames} focus={focus} onSelect={setFocus}/>
         </div>
         <div className="ha-overview__reports">
           <Card icon="assignment" title="Mis reportes" aside={<Badge tone="primary">{mine.length}</Badge>}>

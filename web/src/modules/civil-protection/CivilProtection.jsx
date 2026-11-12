@@ -1,3 +1,6 @@
-export default function CivilProtection() {
-  return <section className="card"><h2>Reportes de lluvia e inundación</h2><p className="muted">La revisión de incidencias y avisos se habilitará en el módulo de Protección Civil.</p></section>;
+import ArcaProteccionCivil from './ArcaProteccionCivil';
+
+// App.jsx ya pasa onLogout y profile; no se modifica Firebase Auth.
+export default function CivilProtection(props) {
+  return <ArcaProteccionCivil {...props} />;
 }

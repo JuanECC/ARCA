@@ -1,15 +1,8 @@
-
 import { useEffect, useState } from 'react';
 import { onAuthStateChanged, signOut } from 'firebase/auth';
 
 import AuthPage from '../modules/auth/AuthPage';
-
-import {
-  auth,
-  ensureProfile,
-  accountError,
-} from '../modules/auth/firebase';
-
+import { auth, ensureProfile, accountError } from '../modules/auth/firebase';
 import { roleLabels } from '../modules/auth/roles';
 
 import AdminPanel from '../modules/admin/AdminPanel';
@@ -18,13 +11,9 @@ import WaterOperations from '../modules/water-operations/WaterOperations';
 import CivilProtection from '../modules/civil-protection/CivilProtection';
 import MaintenanceCrew from '../modules/maintenance-crew/MaintenanceCrew';
 
-// Estilos individuales de cada módulo.
 import './citizen-layout.css';
 import './operator-layout.css';
-
-// ==============================================
-// PANELES SEGÚN EL ROL
-// ==============================================
+import './civil-protection-layout.css';
 
 const panels = {
   admin: AdminPanel,
@@ -38,10 +27,6 @@ export default function App() {
   const [session, setSession] = useState(undefined);
   const [error, setError] = useState('');
 
-  // ============================================
-  // VERIFICACIÓN DE SESIÓN
-  // ============================================
-
   useEffect(() => {
     if (!auth) {
       setSession(null);
@@ -51,51 +36,31 @@ export default function App() {
     let active = true;
     let revision = 0;
 
-    const unsubscribe = onAuthStateChanged(
-      auth,
-      async (user) => {
-        const currentRevision = ++revision;
+    const unsubscribe = onAuthStateChanged(auth, async (user) => {
+      const currentRevision = ++revision;
 
-        if (!user) {
-          if (active) {
-            setSession(null);
-          }
-          return;
-        }
+      if (!user) {
+        if (active) setSession(null);
+        return;
+      }
 
+      try {
+        const profile = await ensureProfile(user);
+        if (!active || currentRevision !== revision) return;
+        setSession(profile);
+        setError('');
+      } catch (failure) {
+        if (!active || currentRevision !== revision) return;
+        console.error('Error al cargar perfil:', failure);
+        setSession(null);
+        setError(accountError(failure));
         try {
-          const profile = await ensureProfile(user);
-
-          if (!active || currentRevision !== revision) {
-            return;
-          }
-
-          setSession(profile);
-          setError('');
-        } catch (failure) {
-          if (!active || currentRevision !== revision) {
-            return;
-          }
-
-          console.error(
-            'Error al cargar perfil:',
-            failure
-          );
-
-          setSession(null);
-          setError(accountError(failure));
-
-          try {
-            await signOut(auth);
-          } catch (logoutError) {
-            console.error(
-              'Error al cerrar sesión:',
-              logoutError
-            );
-          }
+          await signOut(auth);
+        } catch (logoutError) {
+          console.error('Error al cerrar sesión:', logoutError);
         }
       }
-    );
+    });
 
     return () => {
       active = false;
@@ -103,193 +68,86 @@ export default function App() {
     };
   }, []);
 
-  // ============================================
-  // FONDO EXCLUSIVO DE CIUDADANÍA
-  // ============================================
-
+  // Los fondos son exclusivos de cada rol; otros paneles no se afectan.
   useEffect(() => {
-    const isCitizen = session?.role === 'citizen';
-
-    document.body.classList.toggle(
-      'arca-citizen-body',
-      isCitizen
-    );
+    const role = session?.role;
+    document.body.classList.toggle('arca-citizen-body', role === 'citizen');
+    document.body.classList.toggle('arca-water-body', role === 'water-operator');
+    document.body.classList.toggle('arca-pc-body', role === 'civil-protection');
 
     return () => {
       document.body.classList.remove(
-        'arca-citizen-body'
+        'arca-citizen-body', 'arca-water-body', 'arca-pc-body'
       );
     };
   }, [session?.role]);
-
-  // ============================================
-  // FONDO EXCLUSIVO DE OPERACIONES
-  // ============================================
-
-  useEffect(() => {
-    const isWater =
-      session?.role === 'water-operator';
-
-    document.body.classList.toggle(
-      'arca-water-body',
-      isWater
-    );
-
-    return () => {
-      document.body.classList.remove(
-        'arca-water-body'
-      );
-    };
-  }, [session?.role]);
-
-  // ============================================
-  // COMPROBACIÓN INICIAL
-  // ============================================
 
   if (session === undefined) {
     return (
       <main className="page">
-        <p role="status">
-          Comprobando sesión...
-        </p>
+        <p role="status">Comprobando sesión...</p>
       </main>
     );
   }
 
-  // ============================================
-  // LOGIN
-  // ============================================
-
   if (session === null) {
     return (
       <>
-        {error && (
-          <p
-            className="message error"
-            role="alert"
-          >
-            {error}
-          </p>
-        )}
-
+        {error && <p className="message error" role="alert">{error}</p>}
         <AuthPage />
       </>
     );
   }
 
-  // ============================================
-  // IDENTIFICACIÓN DEL PANEL
-  // ============================================
-
   const Panel = panels[session.role];
-
-  const isCitizen =
-    session.role === 'citizen';
-
-  const isWater =
-    session.role === 'water-operator';
-
-  const fullScreenPanel =
-    isCitizen || isWater;
-
-  // ============================================
-  // CERRAR SESIÓN
-  // ============================================
-
-  async function logout() {
-    try {
-      await signOut(auth);
-
-      setSession(null);
-      setError('');
-    } catch (failure) {
-      console.error(
-        'Error al cerrar sesión:',
-        failure
-      );
-
-      setError(
-        'No se pudo cerrar la sesión.'
-      );
-    }
-  }
-
-  // ============================================
-  // CLASE DEL CONTENEDOR
-  // ============================================
+  const isCitizen = session.role === 'citizen';
+  const isWater = session.role === 'water-operator';
+  const isCivil = session.role === 'civil-protection';
+  const ownHeader = isCitizen || isWater || isCivil;
 
   const pageClass = isCitizen
     ? 'page page--citizen'
     : isWater
       ? 'page page--water-operator'
-      : 'page page--narrow';
+      : isCivil
+        ? 'page page--civil-protection'
+        : 'page page--narrow';
 
-  // ============================================
-  // RENDER PRINCIPAL
-  // ============================================
+  async function logout() {
+    try {
+      await signOut(auth);
+      setSession(null);
+      setError('');
+    } catch (failure) {
+      console.error('Error al cerrar sesión:', failure);
+      setError('No se pudo cerrar la sesión.');
+    }
+  }
 
   return (
     <main className={pageClass}>
-
-      {/* Encabezado de los demás roles.
-          Ciudadanía y Operaciones tienen
-          su propio encabezado interno. */}
-
-      {!fullScreenPanel && (
+      {!ownHeader && (
         <header className="panel-header">
           <div>
-            <p className="eyebrow">
-              HidroAlerta Veracruz
-            </p>
-
-            <h1>
-              {Panel
-                ? roleLabels[session.role]
-                : 'Acceso pendiente'}
-            </h1>
-
+            <p className="eyebrow">HidroAlerta Veracruz</p>
+            <h1>{Panel ? roleLabels[session.role] : 'Acceso pendiente'}</h1>
             <p className="muted">
-              {session.nombre ||
-                session.email ||
-                'Usuario'}
+              {session.nombre || session.email || 'Usuario'}
             </p>
           </div>
-
-          <button
-            type="button"
-            className="text-button"
-            onClick={logout}
-          >
+          <button type="button" className="text-button" onClick={logout}>
             Cerrar sesión
           </button>
         </header>
       )}
 
-      {/* Mensajes de error */}
-
-      {error && (
-        <p
-          className="message error"
-          role="alert"
-        >
-          {error}
-        </p>
-      )}
-
-      {/* Panel correspondiente al rol */}
+      {error && <p className="message error" role="alert">{error}</p>}
 
       {Panel ? (
-        <Panel
-          profile={session}
-          onLogout={logout}
-        />
+        <Panel profile={session} onLogout={logout} />
       ) : (
-        <p>
-          No existe un panel configurado
-          para el rol de esta cuenta.
-        </p>
+        <p>No existe un panel configurado para el rol de esta cuenta.</p>
       )}
-
     </main>
   );
 }

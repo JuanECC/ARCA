@@ -1,4 +1,3 @@
-
 rules_version = '2';
 
 service cloud.firestore {
@@ -68,6 +67,21 @@ service cloud.firestore {
         && exists(
           /databases/$(database)/documents/sectors/$(id)
         );
+    }
+
+    // Vincula un aviso a un riesgo real del departamento de PC.
+    // getAfter permite validar cambios del mismo lote (cierre / retiro).
+    function linkedPcReport(reportId, notice) {
+      let report = getAfter(
+        /databases/$(database)/documents/systemReports/$(reportId)
+      ).data;
+      return report.source == 'proteccion-civil'
+        && report.status == 'publicado'
+        && report.get('createdBy', request.auth.uid) == request.auth.uid
+        && report.sectorId == notice.sectorId
+        && report.alert is map
+        && report.alert.title == notice.title
+        && report.alert.message == notice.message;
     }
 
     // ==========================================
@@ -411,6 +425,7 @@ service cloud.firestore {
       // Operaciones consulta todos los sectores.
       // Ciudadanía solo los sectores activos.
       allow get, list: if isWaterOperator()
+        || isCivilProtection()
         || (
           signedIn()
           && resource.data.active == true
@@ -647,6 +662,13 @@ service cloud.firestore {
             isCivilProtection()
             && request.resource.data.source ==
               'proteccion-civil'
+            && request.resource.data.createdBy == request.auth.uid
+            && request.resource.data.level in [
+              'medio', 'alto', 'critico'
+            ]
+            && request.resource.data.photos[0].matches(
+              'data:image/webp;base64,[A-Za-z0-9+/=]+'
+            )
           )
         );
 
@@ -695,7 +717,109 @@ service cloud.firestore {
         )
       );
 
-      allow delete: if false;
+      // ========================================
+      // PROTECCIÓN CIVIL: BORRADORES Y ALERTAS
+      // ========================================
+
+      // Solo edita, publica o controla sus propios riesgos.
+      allow update: if isCivilProtection()
+        && resource.data.source == 'proteccion-civil'
+        // La cuenta institucional fija puede gestionar su legado sin
+        // createdBy. Si el campo existe, debe coincidir con su UID.
+        && resource.data.get('createdBy', request.auth.uid) == request.auth.uid
+        && request.resource.data.source == resource.data.source
+        && request.resource.data.get('createdBy', '') == resource.data.get('createdBy', '')
+        && request.resource.data.sectorId == resource.data.sectorId
+        && (
+          // Editar exclusivamente una alerta nueva.
+          (
+            resource.data.status == 'nuevo'
+            && request.resource.data.status == 'nuevo'
+            && request.resource.data.diff(resource.data)
+              .affectedKeys().hasOnly([
+                'type', 'level', 'colonia', 'description',
+                'position', 'photos', 'reporter'
+              ])
+            && request.resource.data.level in [
+              'medio', 'alto', 'critico'
+            ]
+            && request.resource.data.description is string
+            && request.resource.data.description.size() >= 10
+            && request.resource.data.description.size() <= 1500
+            && request.resource.data.colonia is string
+            && request.resource.data.colonia.size() <= 100
+            && validPoint(request.resource.data.position)
+            && request.resource.data.photos is list
+            && request.resource.data.photos.size() == 1
+            && request.resource.data.photos[0] is string
+            && request.resource.data.photos[0].size() <= 170000
+            && request.resource.data.photos[0].matches(
+              'data:image/webp;base64,[A-Za-z0-9+/=]+'
+            )
+          )
+          ||
+          // Publicar el riesgo (misma transacción que notices).
+          (
+            resource.data.status == 'nuevo'
+            && request.resource.data.status == 'publicado'
+            && !('closure' in resource.data)
+            && request.resource.data.diff(resource.data)
+              .affectedKeys().hasOnly(['status', 'alert'])
+            && request.resource.data.alert is map
+            && request.resource.data.alert.keys().hasOnly([
+              'title', 'message', 'by', 'at'
+            ])
+            && request.resource.data.alert.keys().hasAll([
+              'title', 'message', 'by', 'at'
+            ])
+            && request.resource.data.alert.title is string
+            && request.resource.data.alert.title.size() >= 5
+            && request.resource.data.alert.title.size() <= 120
+            && request.resource.data.alert.message is string
+            && request.resource.data.alert.message.size() >= 10
+            && request.resource.data.alert.message.size() <= 600
+            && request.resource.data.alert.by ==
+              'Departamento de Protección Civil'
+            && request.resource.data.alert.at is string
+          )
+          ||
+          // Retirar una publicación después de controlar el riesgo.
+          // El aviso se elimina en el mismo lote y el reporte se conserva.
+          (
+            resource.data.status == 'publicado'
+            && 'closure' in resource.data
+            && !('publicationRetired' in resource.data)
+            && request.resource.data.diff(resource.data)
+              .affectedKeys().hasOnly(['publicationRetired'])
+            && request.resource.data.publicationRetired == true
+          )
+          ||
+          // Marcar controlado, conservando el reporte original.
+          (
+            request.resource.data.status == resource.data.status
+            && !('closure' in resource.data)
+            && request.resource.data.diff(resource.data)
+              .affectedKeys().hasOnly(['closure'])
+            && request.resource.data.closure is map
+            && request.resource.data.closure.keys().hasOnly([
+              'note', 'at'
+            ])
+            && request.resource.data.closure.keys().hasAll([
+              'note', 'at'
+            ])
+            && request.resource.data.closure.note is string
+            && request.resource.data.closure.note.size() >= 10
+            && request.resource.data.closure.note.size() <= 280
+            && request.resource.data.closure.at is string
+          )
+        );
+
+      // Solo puede eliminar borradores propios sin publicar.
+      allow delete: if isCivilProtection()
+        && resource.data.source == 'proteccion-civil'
+        && resource.data.createdBy == request.auth.uid
+        && resource.data.status == 'nuevo'
+        && !('closure' in resource.data);
     }
 
     // ==========================================
@@ -764,7 +888,86 @@ service cloud.firestore {
         && request.resource.data.creadoEn ==
           request.time;
 
-      allow update, delete: if false;
+      // ========================================
+      // PROTECCIÓN CIVIL: ALERTAS GLOBALES
+      // ========================================
+
+      allow create: if isCivilProtection()
+        && request.resource.data.keys().hasOnly([
+          'kind', 'audience', 'sectorId', 'title', 'message',
+          'level', 'reporter', 'publishedBy', 'reportId', 'position', 'creadoEn'
+        ])
+        && request.resource.data.keys().hasAll([
+          'kind', 'audience', 'sectorId', 'title', 'message',
+          'level', 'reporter', 'publishedBy', 'reportId', 'position', 'creadoEn'
+        ])
+        && request.resource.data.kind == 'alerta-proteccion-civil'
+        && request.resource.data.audience == 'todos'
+        && validSectorId(request.resource.data.sectorId)
+        && request.resource.data.level in [
+          'medio', 'alto', 'critico'
+        ]
+        && request.resource.data.reporter ==
+          'Departamento de Protección Civil'
+        && request.resource.data.publishedBy == request.auth.uid
+        && request.resource.data.title is string
+        && request.resource.data.title.size() >= 5
+        && request.resource.data.title.size() <= 120
+        && request.resource.data.message is string
+        && request.resource.data.message.size() >= 10
+        && request.resource.data.message.size() <= 600
+        && request.resource.data.reportId is string
+        && validPoint(request.resource.data.position)
+        && request.resource.data.creadoEn == request.time
+        // En el lote, el reporte asociado queda publicado.
+        && getAfter(
+          /databases/$(database)/documents/systemReports/$(request.resource.data.reportId)
+        ).data.source == 'proteccion-civil'
+        && getAfter(
+          /databases/$(database)/documents/systemReports/$(request.resource.data.reportId)
+        ).data.status == 'publicado'
+        && getAfter(
+          /databases/$(database)/documents/systemReports/$(request.resource.data.reportId)
+        ).data.createdBy == request.auth.uid
+        // El punto publicado debe coincidir con el riesgo original.
+        && getAfter(
+          /databases/$(database)/documents/systemReports/$(request.resource.data.reportId)
+        ).data.position == request.resource.data.position
+        && getAfter(
+          /databases/$(database)/documents/systemReports/$(request.resource.data.reportId)
+        ).data.sectorId == request.resource.data.sectorId;
+
+      // PC actualiza el aviso a controlado y, en avisos antiguos, enlaza
+      // reportId cuando el título, mensaje, sector y autor coinciden.
+      // Se requiere cierre registrado en systemReports, que puede ocurrir
+      // en el mismo lote (getAfter).
+      allow update: if isCivilProtection()
+        && resource.data.kind == 'alerta-proteccion-civil'
+        && resource.data.publishedBy == request.auth.uid
+        && request.resource.data.diff(resource.data)
+          .affectedKeys().hasOnly(['estado', 'reportId'])
+        && request.resource.data.reportId is string
+        && (
+          !('reportId' in resource.data)
+          || resource.data.reportId == request.resource.data.reportId
+        )
+        && request.resource.data.estado == 'controlado'
+        && linkedPcReport(request.resource.data.reportId, resource.data)
+        && getAfter(
+          /databases/$(database)/documents/systemReports/$(request.resource.data.reportId)
+        ).data.closure is map;
+
+      // Retiro de publicación: elimina el AVISO público, no el informe.
+      // El mismo lote debe marcar publicationRetired en systemReports.
+      allow delete: if isCivilProtection()
+        && resource.data.kind == 'alerta-proteccion-civil'
+        && resource.data.publishedBy == request.auth.uid
+        && resource.data.estado == 'controlado'
+        && resource.data.reportId is string
+        && linkedPcReport(resource.data.reportId, resource.data)
+        && getAfter(
+          /databases/$(database)/documents/systemReports/$(resource.data.reportId)
+        ).data.publicationRetired == true;
     }
 
     // ==========================================
@@ -805,6 +1008,38 @@ service cloud.firestore {
           request.time;
 
       allow delete: if false;
+    }
+
+    // ==========================================
+    // COLECCIÓN: PCUNITS
+    // UNIDADES DE GUARDIA DE PROTECCIÓN CIVIL
+    // ==========================================
+
+    match /pcUnits/{id} {
+      allow read: if isCivilProtection() || isAdmin();
+
+      allow create, update: if isCivilProtection()
+        && request.resource.data.keys().hasOnly([
+          'name', 'leader', 'shift', 'status', 'sectorId'
+        ])
+        && request.resource.data.keys().hasAll([
+          'name', 'leader', 'shift', 'status', 'sectorId'
+        ])
+        && request.resource.data.name is string
+        && request.resource.data.name.size() >= 2
+        && request.resource.data.name.size() <= 40
+        && request.resource.data.leader is string
+        && request.resource.data.leader.size() >= 2
+        && request.resource.data.leader.size() <= 60
+        && request.resource.data.shift in [
+          'matutino', 'vespertino', 'nocturno'
+        ]
+        && request.resource.data.status in [
+          'rondin', 'atendiendo', 'disponible', 'fuera'
+        ]
+        && validSectorId(request.resource.data.sectorId);
+
+      allow delete: if isCivilProtection();
     }
 
     // ==========================================

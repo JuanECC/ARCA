@@ -1,0 +1,79 @@
+/* Solo el layout de Protección Civil; no altera otros roles. */
+.page.page--civil-protection {
+  display: block;
+  max-width: none;
+  min-width: 0;
+  width: 100%;
+  margin: 0;
+  padding: 0;
+  gap: 0;
+}
+body.arca-pc-body { background: #f6f8f9; }
+body.arca-pc-body[data-arca-pc-theme="dark"] { background: #0c1113; }
+
+.arca-pc .pc-logout {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: .45rem;
+  min-height: 2.45rem;
+  padding: .45rem .85rem;
+  border: 1px solid rgba(214,76,76,.35);
+  border-radius: .8rem;
+  background: rgba(214,76,76,.1);
+  color: var(--error);
+  font-weight: 700;
+  cursor: pointer;
+}
+.arca-pc .pc-logout:hover { background: rgba(214,76,76,.2); }
+.arca-pc .pc-loading {
+  padding: 1rem;
+  border: 1px solid var(--border);
+  border-radius: 1rem;
+  background: var(--surface);
+  color: var(--text-soft);
+  margin: .75rem 0;
+}
+.arca-pc .console__grid > * { min-width: 0; }
+.arca-pc .header { max-width: 100%; }
+@media (max-width: 767px) {
+  .arca-pc .header__tools { gap: .4rem; }
+  .arca-pc .pc-logout { padding-inline: .6rem; }
+  .arca-pc .header__brand { min-width: 0; }
+  .arca-pc .header__tagline { font-size: .67rem; }
+}
+@media (min-width: 900px) and (max-width: 1279px) {
+  .arca-pc .console__grid { grid-template-columns: minmax(240px, .42fr) minmax(0, 1fr); }
+}
+
+/* Afinado visual ARCA: jerarquía limpia en escritorio y botones táctiles en móvil. */
+.arca-pc .console { margin-inline: auto; max-width: 1720px; }
+.arca-pc .console__intro {
+  padding: clamp(1rem, 2vw, 1.5rem);
+  border-radius: 1.2rem;
+  border: 1px solid var(--border);
+  background: linear-gradient(120deg, var(--surface) 0%, var(--surface-low) 100%);
+  box-shadow: var(--shadow);
+}
+.arca-pc .console__intro .btn { min-height: 2.8rem; }
+.arca-pc .console__toolbar { padding: .7rem; }
+.arca-pc .riskmap,
+.arca-pc .side-card,
+.arca-pc .detail { border-radius: 1.1rem; }
+.arca-pc .riskmap { min-height: 360px; }
+.arca-pc .header__tools .pc-logout { flex-shrink: 0; }
+@media (max-width: 899px) {
+  .arca-pc .console { padding-block: 1rem 2.5rem; }
+  .arca-pc .console__zones { width: 100%; }
+  .arca-pc .console__summary { justify-content: flex-start; }
+  .arca-pc .console__intro .btn { width: 100%; justify-content: center; }
+  .arca-pc .console__side { grid-column: auto; }
+}
+@media (max-width: 480px) {
+  .arca-pc .header__tagline { max-width: 180px; }
+  .arca-pc .console { gap: 1rem; }
+  .arca-pc .riskmap { height: 330px; min-height: 330px; }
+  .arca-pc .pc-logout span { display: none; }
+  .arca-pc .pc-logout { width: 2.35rem; padding: .4rem; }
+  .arca-pc .console__summary > span { font-size: .7rem; padding: .4rem .6rem; }
+}

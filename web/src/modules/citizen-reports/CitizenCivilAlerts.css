@@ -1,0 +1,30 @@
+/* Avisos oficiales de Protección Civil - tema claro/oscuro de ARCA */
+.ha .ha-civil-alerts { margin: 0 0 1.25rem; border: 1px solid rgba(219,49,53,.38); border-radius: 16px; padding: 1rem; background: var(--surface, #fff); color: var(--text, #1c2730); box-shadow: 0 4px 18px rgba(160,30,40,.08); min-width: 0; }
+.ha .ha-civil-alerts__head { display: flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap: .6rem 1rem; margin-bottom: .85rem; }
+.ha .ha-civil-alerts__head > div { display:flex; flex-direction:column; gap:.15rem; }
+.ha .ha-civil-alerts__head strong { color: #c92c36; font-size: 1rem; }
+.ha .ha-civil-alerts__head span, .ha .ha-civil-alert small { font-size:.76rem; color: var(--text-soft, #667b87); }
+.ha .ha-civil-alerts__live { font-size:.72rem; font-weight:700; border-radius:999px; padding:.35rem .65rem; background:rgba(219,49,53,.09); color:#bd2635; }
+.ha .ha-civil-alerts__list { display:grid; gap:.7rem; max-height: 290px; overflow-y:auto; }
+.ha .ha-civil-alert { border:1px solid rgba(219,49,53,.22); border-left:4px solid #d92d35; padding: .9rem 1rem; border-radius: 10px; background: var(--surface-low, #f7f9fb); }
+.ha .ha-civil-alert__heading { display:flex; gap:.6rem; justify-content:space-between; align-items:center; flex-wrap:wrap; }
+.ha .ha-civil-alert__heading strong { font-size:.92rem; }
+.ha .ha-civil-alert__heading span { border-radius:999px; background:rgba(219,49,53,.12); color:#b52332; font-size:.72rem; padding:.18rem .5rem; }
+.ha .ha-civil-alert p { margin:.45rem 0; line-height:1.5; overflow-wrap:anywhere; }
+.ha[data-theme="dark"] .ha-civil-alerts__head strong, .ha[data-theme="dark"] .ha-civil-alerts__live, .ha[data-theme="dark"] .ha-civil-alert__heading span { color:#ffaaa9; }
+@media (max-width: 640px) { .ha .ha-civil-alerts { padding:.8rem; } .ha .ha-civil-alert { padding:.75rem; } }
+
+/* Marcador pulsante: solo alertas activas; al controlar queda verde y fijo. */
+.ha .leaflet-overlay-pane path.ha-pc-marker--active {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: ha-pc-pulse 1.55s ease-in-out infinite;
+}
+.ha .leaflet-overlay-pane path.ha-pc-marker--controlled { animation: none; }
+@keyframes ha-pc-pulse {
+  0%, 100% { stroke-width: 3px; fill-opacity: .70; transform: scale(1); }
+  50% { stroke-width: 5px; fill-opacity: .32; transform: scale(1.25); }
+}
+.ha .ha-civil-alert--controlled { border-left-color: #168956; border-color: rgba(22,137,86,.3); }
+.ha .ha-civil-alert--controlled .ha-civil-alert__heading span { background: rgba(22,137,86,.12); color: #127548; }
+@media (prefers-reduced-motion: reduce) { .ha .leaflet-overlay-pane path.ha-pc-marker--active { animation: none !important; } }
