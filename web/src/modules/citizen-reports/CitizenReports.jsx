@@ -16,6 +16,7 @@
 import { useEffect, useState } from 'react';
 import { CircleMarker, MapContainer, TileLayer, Popup, Tooltip, useMap, useMapEvents } from 'react-leaflet';
 import { reportMapStatus } from '../reportMapStatus';
+import { offlineEnabled } from '../offline/preferences';
 import { auth } from '../auth/firebase';
 import { collection, getFirestore, onSnapshot, query, where } from 'firebase/firestore';
 import CitizenProfile from './CitizenProfile';
@@ -122,22 +123,39 @@ const WEATHER_URL =
   '&forecast_hours=6&timezone=America/Mexico_City';
 
 function useWeather() {
-  const [weather, setWeather] = useState({ temperature: '—', rain: '—', hourly: [] });
+  const [weather, setWeather] = useState(() => {
+    try {
+      const stored = offlineEnabled() && JSON.parse(localStorage.getItem('arca-weather'));
+      if (stored?.at && Array.isArray(stored.hourly)) return { ...stored, cached: true };
+    } catch {}
+    return { temperature: '—', rain: '—', hourly: [], at: null, cached: true };
+  });
 
   useEffect(() => {
-    fetch(WEATHER_URL)
-      .then((res) => res.json())
-      .then((data) =>
-        setWeather({
+    let active = true;
+    const load = () => fetch(WEATHER_URL)
+      .then((res) => { if (!res.ok) throw Error('Clima no disponible'); return res.json(); })
+      .then((data) => {
+        const next = {
           temperature: Math.round(data.current.temperature_2m),
           rain: data.current.precipitation,
           hourly: data.hourly.time.map((time, i) => ({
             hour: `${new Date(time).getHours()} h`,
             probability: data.hourly.precipitation_probability[i],
           })),
-        }),
-      )
-      .catch(() => {}); // sin conexión: se quedan los valores de respaldo
+          at: new Date().toISOString(), cached: false,
+        };
+        if (active) setWeather(next);
+        if (offlineEnabled()) {
+          try { localStorage.setItem('arca-weather', JSON.stringify(next)); } catch {}
+        }
+      })
+      .catch(() => { if (active) setWeather(previous => ({ ...previous, cached: true })); });
+    const offline = () => setWeather(previous => ({ ...previous, cached: true }));
+    load();
+    window.addEventListener('online', load);
+    window.addEventListener('offline', offline);
+    return () => { active = false; window.removeEventListener('online', load); window.removeEventListener('offline', offline); };
   }, []);
 
   return weather;
@@ -232,6 +250,7 @@ function Header({ weather, theme, onToggleTheme, onLogout, onOpenProfile, profil
         <div className="ha-header__weather ha-num">
           <span className="ha-header__temp">{weather.temperature}°C</span>
           <span>Lluvia {weather.rain} mm/h</span>
+          <small>{weather.at ? `${weather.cached ? 'Guardado' : 'Consultado'} · ${new Date(weather.at).toLocaleString('es-MX')} · Open-Meteo` : 'Clima no disponible'}</small>
         </div>
         <a className="ha-header__emergency" href="tel:911">
           <Icon name="emergency" size={16} /> 911
@@ -563,6 +582,7 @@ function ReportForm({ onClose, onCreated, notify }) {
   const [tipo, setTipo] = useState('inundacion');
   const [foto, setFoto] = useState(null);
   const [ubicacion, setUbicacion] = useState(null);
+  const [manual, setManual] = useState({ lat: '', lng: '' });
   const [busy, setBusy] = useState(false);
   const [locating, setLocating] = useState(false);
   const locate = async () => {
@@ -574,8 +594,10 @@ function ReportForm({ onClose, onCreated, notify }) {
   const submit = async (event) => {
     event.preventDefault(); setBusy(true);
     try {
-      await createCitizenReport({ titulo, descripcion, tipo, foto, ubicacion });
-      notify({ title: 'Reporte enviado', message: 'Tu incidencia ya está registrada en ARCA.', tone: 'success' });
+      const result = await createCitizenReport({ titulo, descripcion, tipo, foto, ubicacion });
+      notify(result.pending
+        ? { title: 'Reporte guardado en este dispositivo', message: 'Pendiente de envío. Consulta su confirmación en Conexión y pendientes.', tone: 'warning' }
+        : { title: 'Reporte enviado', message: 'Tu incidencia ya está registrada en ARCA.', tone: 'success' });
       onCreated();
     } catch (error) { notify({ title: 'No se pudo guardar', message: error.message, tone: 'error' }); }
     finally { setBusy(false); }
@@ -590,6 +612,15 @@ function ReportForm({ onClose, onCreated, notify }) {
       {foto && <p className="ha-soft">Archivo: {foto.name}</p>}
       <div className="ha-report-location"><button className="ha-btn" type="button" disabled={locating || busy} onClick={locate}><Icon name="my_location" size={18}/>{locating ? 'Obteniendo GPS...' : 'Obtener mi ubicación'}</button>
       {ubicacion ? <p>Ubicación seleccionada: {ubicacion.latitude.toFixed(6)}, {ubicacion.longitude.toFixed(6)} {ubicacion.accuracy ? `(precisión estimada ±${Math.round(ubicacion.accuracy)} m)` : '(seleccionada manualmente)'}</p> : <p className="ha-soft">Se necesita una ubicación para crear el reporte.</p>}</div>
+      {!navigator.onLine && <p role="status">Sin conexión: el mapa base puede no cargar. Usa el GPS o escribe coordenadas conocidas.</p>}
+      <details><summary>Introducir coordenadas manualmente</summary>
+        <label>Latitud<input type="number" step="any" min="-90" max="90" value={manual.lat}
+          onChange={e => setManual(previous => ({ ...previous, lat: e.target.value }))} /></label>
+        <label>Longitud<input type="number" step="any" min="-180" max="180" value={manual.lng}
+          onChange={e => setManual(previous => ({ ...previous, lng: e.target.value }))} /></label>
+        <button type="button" disabled={!manual.lat || !manual.lng || Math.abs(Number(manual.lat)) > 90 || Math.abs(Number(manual.lng)) > 180}
+          onClick={() => setUbicacion({ latitude: Number(manual.lat), longitude: Number(manual.lng), accuracy: 0 })}>Usar estas coordenadas</button>
+      </details>
       <div className="ha-report-location-map"><MapContainer center={ubicacion ? [ubicacion.latitude, ubicacion.longitude] : MAP_CENTER} zoom={ubicacion ? 16 : 12} style={{height:220,width:'100%'}} scrollWheelZoom={false}>
         <TileLayer url="https://tile.openstreetmap.org/{z}/{x}/{y}.png" attribution='&copy; OpenStreetMap contributors'/>
         <PickLocation position={ubicacion} onPick={setUbicacion}/><FlyTo colonia={ubicacion ? { position: [ubicacion.latitude, ubicacion.longitude] } : null}/>

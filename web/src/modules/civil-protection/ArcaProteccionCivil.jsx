@@ -21,6 +21,7 @@ import './ArcaProteccionCivil.css';
 import ArcaActivityFeed from './ArcaActivityFeed';
 import { watchArcaActivity } from './proteccionCivilService';
 import NotificationBell from '../notifications/NotificationBell';
+import DiffusionSheet from '../offline/DiffusionSheet';
 
 /* ======================================================================
  * FECHAS
@@ -750,6 +751,7 @@ function AlertDetail({ alert, sectors, onEdit, onChange, onRemoved }) {
       </div>
 
       <div className="detail__body">
+        <DiffusionSheet alert={alert} sectorName={sector?.name || 'Sector no disponible'} />
         <div className="detail__head">
           <span className="detail__icon">
             <Icon name={type.icon} />

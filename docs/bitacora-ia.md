@@ -1,5 +1,12 @@
 # Bitácora de IA
 
+## 2026-11-12 · Continuidad durante cortes de internet
+
+- **Solicitud.** Incorporar a la demo la consulta y captura sin internet y explicar cómo difundir una alerta durante el corte.
+- **Aporte de Codex.** Agregó preparación voluntaria del dispositivo, caché de la aplicación y Firestore, pendientes ciudadanos con foto en IndexedDB, revalidación y envío idempotente al reconectar, fechas de información guardada y una ficha de difusión local marcada como simulación.
+- **Verificación.** Prueba automatizada en Edge aislado contra Firebase Emulator: preparar, cortar red, recargar, consultar aviso guardado, guardar reporte con foto, recargar conservando el pendiente, reconectar, recibir un aviso nuevo y comprobar un único reporte enviado con la foto. Compilación de producción correcta.
+- **Entrega.** Guion y límites en [demo-sin-internet.md](demo-sin-internet.md). La difusión por perifoneo se representa como simulación. La prueba no envió SMS ni creó alertas en el proyecto real.
+
 ## 2026-11-11 · Módulo 01 · Arranque
 
 - **Solicitud.** Preparar la estructura de carpetas, el README principal y la conexión con GitHub desde el entorno de desarrollo.

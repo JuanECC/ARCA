@@ -1,0 +1,23 @@
+.offline-center {
+  position: fixed;
+  z-index: 1100;
+  bottom: .75rem;
+  right: .75rem;
+  width: min(380px, calc(100vw - 1.5rem));
+  color: #173440;
+  background: #f4fafc;
+  border: 1px solid #56899b;
+  border-radius: .85rem;
+  box-shadow: 0 4px 20px #0003;
+  font: 14px/1.5 system-ui, sans-serif;
+}
+.offline-center summary { padding: .65rem .85rem; cursor: pointer; font-weight: 700; }
+.offline-content { max-height: 65dvh; overflow: auto; padding: 0 .85rem .85rem; }
+.offline-center :is(h3, p, strong, a) { color: inherit; }
+.offline-center p { margin: .65rem 0; }
+.offline-center article { padding: .65rem 0; border-bottom: 1px solid #abc4cc; }
+.offline-center img { max-width: 100%; max-height: 140px; object-fit: contain; }
+.offline-center button { background: #006686; color: white; border: 0; padding: .65rem .8rem; border-radius: .5rem; cursor: pointer; }
+.offline-center button:disabled { opacity: .55; cursor: default; }
+.offline-center :focus-visible { outline: 3px solid #e8a129; outline-offset: 2px; }
+.offline-flyer { white-space: pre-wrap; padding: 1rem; background: var(--surface, white); color: var(--text, #173440); border: 1px solid var(--border, #abc4cc); border-radius: .7rem; }

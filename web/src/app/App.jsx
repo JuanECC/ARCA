@@ -10,6 +10,7 @@ import CitizenReports from '../modules/citizen-reports/CitizenReports';
 import WaterOperations from '../modules/water-operations/WaterOperations';
 import CivilProtection from '../modules/civil-protection/CivilProtection';
 import MaintenanceCrew from '../modules/maintenance-crew/MaintenanceCrew';
+import OfflineCenter from '../modules/offline/OfflineCenter';
 
 import './citizen-layout.css';
 import './operator-layout.css';
@@ -56,7 +57,7 @@ export default function App() {
         setSession(null);
         setError(accountError(failure));
         try {
-          await signOut(auth);
+          if (navigator.onLine && !['unavailable', 'deadline-exceeded'].includes(failure.code)) await signOut(auth);
         } catch (logoutError) {
           console.error('Error al cerrar sesión:', logoutError);
         }
@@ -95,6 +96,7 @@ export default function App() {
     return (
       <>
         {error && <p className="message error" role="alert">{error}</p>}
+        {!navigator.onLine && <p role="status">Sin conexión. Para abrir tu cuenta aquí debes haber preparado el dispositivo y conservado la sesión. <button onClick={() => location.reload()}>Reintentar</button></p>}
         <AuthPage />
       </>
     );
@@ -128,6 +130,7 @@ export default function App() {
 
   return (
     <main className={pageClass}>
+      <OfflineCenter key={session.uid} profile={session} />
       {!ownHeader && (
         <header className="panel-header">
           <div>

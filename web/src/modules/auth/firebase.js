@@ -18,6 +18,10 @@ import {
   getDoc,
   getDocs,
   getFirestore,
+  initializeFirestore,
+  persistentLocalCache,
+  persistentMultipleTabManager,
+  getDocFromCache,
   limit,
   orderBy,
   query,
@@ -25,6 +29,7 @@ import {
   setDoc,
   startAfter,
 } from 'firebase/firestore';
+import { offlineEnabled } from '../offline/preferences';
 
 import {
   authEmailForName,
@@ -61,7 +66,9 @@ const secondaryAuth = secondaryApp
   ? getAuth(secondaryApp)
   : null;
 
-const db = app ? getFirestore(app) : null;
+const db = app ? (offlineEnabled()
+  ? initializeFirestore(app, { localCache: persistentLocalCache({ tabManager: persistentMultipleTabManager() }) })
+  : getFirestore(app)) : null;
 
 const secondaryDb = secondaryApp
   ? getFirestore(secondaryApp)
@@ -124,7 +131,7 @@ export async function ensureProfile(user) {
   }
 
   const reference = doc(db, 'usuarios', user.uid);
-  const snapshot = await getDoc(reference);
+  const snapshot = await (navigator.onLine ? getDoc(reference) : getDocFromCache(reference));
 
   if (!snapshot.exists()) {
     const error = new Error(
