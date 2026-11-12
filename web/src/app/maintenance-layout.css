@@ -1,0 +1,108 @@
+.page.page--maintenance {
+  display: block;
+  width: 100%;
+  max-width: none;
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+}
+
+.page--maintenance .arca-cuadrillas {
+  min-height: 100dvh;
+}
+
+.page--maintenance .arca-cuadrillas :is(h1, h2, h3) {
+  color: var(--text);
+}
+
+.page--maintenance .arca-cuadrillas .header {
+  position: sticky;
+  top: 0;
+}
+
+.arca-cuadrillas .crew-header-actions {
+  display: flex;
+  align-items: center;
+  gap: .5rem;
+  flex-shrink: 0;
+}
+
+.arca-cuadrillas .crew-header-actions .arca-logout {
+  position: static;
+}
+
+.arca-cuadrillas .crew-jobs-map {
+  height: clamp(16rem, 45vh, 29rem);
+  width: 100%;
+  margin-block-end: .75rem;
+  border: 1px solid var(--border);
+  border-radius: .85rem;
+  isolation: isolate;
+}
+
+.arca-cuadrillas .crew-map-fit {
+  position: absolute;
+  z-index: 500;
+  top: .65rem;
+  right: .65rem;
+  border: 1px solid var(--border);
+  border-radius: .5rem;
+  background: var(--surface);
+  color: var(--text);
+  padding: .5rem .75rem;
+}
+
+.arca-cuadrillas .crew-jobs-map .leaflet-popup-content-wrapper,
+.arca-cuadrillas .crew-jobs-map .leaflet-popup-tip {
+  background: var(--surface);
+  color: var(--text);
+}
+
+.arca-cuadrillas .crew-jobs-map .leaflet-popup-content {
+  line-height: 1.5;
+}
+
+.arca-cuadrillas .crew-map-photo {
+  display: block;
+  width: 100%;
+  max-height: 180px;
+  object-fit: contain;
+  border-radius: .5rem;
+  margin-block: .75rem;
+}
+
+.arca-cuadrillas .crew-jobs-map .leaflet-popup-content p {
+  margin-block: .65rem;
+}
+
+.arca-cuadrillas .crew-jobs-map .leaflet-popup-close-button {
+  color: var(--text);
+}
+
+.arca-cuadrillas .crew-jobs-map .leaflet-popup-content button {
+  background: #086987;
+  color: #fff;
+  border: 1px solid #65d4f2;
+  min-height: 44px;
+  padding: .6rem .9rem;
+  border-radius: .6rem;
+}
+
+.arca-cuadrillas .crew-jobs-map button:focus-visible {
+  outline: 3px solid #65d4f2;
+  outline-offset: 3px;
+}
+
+@media (max-width: 480px) {
+  .page--maintenance .arca-cuadrillas .header {
+    gap: .5rem;
+  }
+
+  .arca-cuadrillas .header__brand {
+    min-width: 0;
+  }
+
+  .arca-cuadrillas .header__tagline {
+    display: none;
+  }
+}

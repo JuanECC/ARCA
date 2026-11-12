@@ -1,0 +1,1213 @@
+/*
+ * ARCA · Panel de cuadrillas · estilos (claro y oscuro).
+ * Todo está dentro de .arca-cuadrillas: no afecta al resto del proyecto.
+ */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@600;700;800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,400..600,0..1,0&display=block');
+
+/* Contenedor de todo el panel (antes era <body>) */
+.arca-cuadrillas {
+  min-height: 100vh;
+  text-align: left;
+}
+
+/* ---------- styles/theme.css ---------- */
+/*
+ * Colores y fuentes de ARCA.
+ * Cada color existe en versión clara y oscura: los componentes solo usan
+ * estas variables, así el texto nunca pierde contraste al cambiar de tema.
+ */
+
+.arca-cuadrillas {
+  --font-text: 'Inter', system-ui, sans-serif;
+  --font-title: 'Plus Jakarta Sans', 'Inter', sans-serif;
+
+  --radius: 0.75rem;
+  --radius-lg: 1.25rem;
+  --header-h: 4.5rem;
+  --gutter: 1rem;
+}
+
+@media (min-width: 768px) {
+  .arca-cuadrillas { --gutter: 2rem; }
+}
+
+/* ---------- Tema claro ---------- */
+.arca-cuadrillas[data-theme='light'] {
+  color-scheme: light;
+
+  --bg: #f6f8f9;
+  --surface: #ffffff;
+  --surface-low: #f2f4f5;
+  --surface-high: #e3e7ea;
+  --text: #182024;
+  --text-soft: #43505a;
+  --border: rgba(0, 102, 134, 0.14);
+
+  --primary: #006686;
+  --on-primary: #ffffff;
+  --primary-bg: #c4ebff;
+  --on-primary-bg: #004d66;
+
+  --secondary: #376479;
+  --secondary-bg: #d3eefc;
+  --on-secondary-bg: #1c4c60;
+
+  --tertiary: #724e97;
+  --tertiary-bg: #efdcff;
+  --on-tertiary-bg: #59367d;
+
+  --success: #1d6b4f;
+  --success-bg: #c9f0dc;
+  --on-success-bg: #0b4a33;
+
+  --warning: #8a5300;
+  --warning-bg: #ffe3b0;
+  --on-warning-bg: #5c3700;
+
+  --error: #ba1a1a;
+  --error-bg: #ffdad6;
+  --on-error-bg: #8c0009;
+
+  /* Semáforo: colores de señal para puntos y barras */
+  --risk-low: #1f8a5f;
+  --risk-mid: #d08a00;
+  --risk-high: #d32f2f;
+
+  --glass: rgba(255, 255, 255, 0.82);
+  --shadow: 0 8px 24px -10px rgba(16, 40, 56, 0.22);
+}
+
+/* ---------- Tema oscuro ---------- */
+.arca-cuadrillas[data-theme='dark'] {
+  color-scheme: dark;
+
+  --bg: #0c1113;
+  --surface: #161d20;
+  --surface-low: #1b2327;
+  --surface-high: #2a3439;
+  --text: #e3e9ec;
+  --text-soft: #b9c5cc;
+  --border: rgba(123, 209, 250, 0.14);
+
+  --primary: #7bd1fa;
+  --on-primary: #00344a;
+  --primary-bg: #0b4a63;
+  --on-primary-bg: #c4ebff;
+
+  --secondary: #a0cde5;
+  --secondary-bg: #1c4c60;
+  --on-secondary-bg: #d3eefc;
+
+  --tertiary: #dcb8ff;
+  --tertiary-bg: #4f2f73;
+  --on-tertiary-bg: #f0dbff;
+
+  --success: #7fdcb0;
+  --success-bg: #0f4a35;
+  --on-success-bg: #c9f0dc;
+
+  --warning: #fbc35c;
+  --warning-bg: #4d3300;
+  --on-warning-bg: #ffe3b0;
+
+  --error: #ffb4ab;
+  --error-bg: #7a1414;
+  --on-error-bg: #ffdad6;
+
+  --risk-low: #3fc58c;
+  --risk-mid: #f2b233;
+  --risk-high: #ff6b6b;
+
+  --glass: rgba(22, 29, 32, 0.85);
+  --shadow: 0 8px 24px -10px rgba(0, 0, 0, 0.7);
+}
+
+/* ---------- styles/global.css ---------- */
+.arca-cuadrillas *,
+.arca-cuadrillas *::before,
+.arca-cuadrillas *::after {
+  box-sizing: border-box;
+}
+
+.arca-cuadrillas {
+  margin: 0;
+  font-family: var(--font-text);
+  font-size: 0.875rem;
+  line-height: 1.5;
+  color: var(--text);
+  background: var(--bg);
+  -webkit-font-smoothing: antialiased;
+  transition: background-color 0.25s, color 0.25s;
+}
+
+.arca-cuadrillas h1,
+.arca-cuadrillas h2,
+.arca-cuadrillas h3 {
+  margin: 0;
+  font-family: var(--font-title);
+  line-height: 1.2;
+  letter-spacing: -0.01em;
+}
+
+.arca-cuadrillas p {
+  margin: 0;
+}
+
+.arca-cuadrillas button,
+.arca-cuadrillas input,
+.arca-cuadrillas select,
+.arca-cuadrillas textarea {
+  font: inherit;
+  color: inherit;
+}
+
+.arca-cuadrillas button {
+  cursor: pointer;
+  background: none;
+  border: 0;
+  padding: 0;
+}
+
+.arca-cuadrillas :focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+}
+
+.arca-cuadrillas .material-symbols-outlined {
+  line-height: 1;
+  user-select: none;
+}
+
+/* ---------- Utilidades ---------- */
+
+/* Números alineados (sin fuentes de máquina de escribir) */
+.arca-cuadrillas .num {
+  font-variant-numeric: tabular-nums;
+}
+
+/* Etiqueta pequeña en mayúsculas */
+.arca-cuadrillas .label {
+  font-size: 0.6875rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--text-soft);
+}
+
+.arca-cuadrillas .soft {
+  color: var(--text-soft);
+}
+
+/*
+ * Tonos: una clase define 4 variables que usan los componentes.
+ * --tone (texto) · --tone-bg (fondo) · --tone-on (texto sobre fondo) · --tone-fill (barras y puntos)
+ */
+.arca-cuadrillas .tone-primary { --tone: var(--primary); --tone-bg: var(--primary-bg); --tone-on: var(--on-primary-bg); --tone-fill: var(--primary); }
+.arca-cuadrillas .tone-secondary { --tone: var(--secondary); --tone-bg: var(--secondary-bg); --tone-on: var(--on-secondary-bg); --tone-fill: var(--secondary); }
+.arca-cuadrillas .tone-tertiary { --tone: var(--tertiary); --tone-bg: var(--tertiary-bg); --tone-on: var(--on-tertiary-bg); --tone-fill: var(--tertiary); }
+.arca-cuadrillas .tone-success { --tone: var(--success); --tone-bg: var(--success-bg); --tone-on: var(--on-success-bg); --tone-fill: var(--risk-low); }
+.arca-cuadrillas .tone-warning { --tone: var(--warning); --tone-bg: var(--warning-bg); --tone-on: var(--on-warning-bg); --tone-fill: var(--risk-mid); }
+.arca-cuadrillas .tone-error { --tone: var(--error); --tone-bg: var(--error-bg); --tone-on: var(--on-error-bg); --tone-fill: var(--risk-high); }
+.arca-cuadrillas .tone-neutral { --tone: var(--text-soft); --tone-bg: var(--surface-high); --tone-on: var(--text-soft); --tone-fill: var(--text-soft); }
+
+.arca-cuadrillas .text-tone {
+  color: var(--tone);
+}
+
+/* Punto "en vivo" con pulso */
+.arca-cuadrillas .live-dot {
+  position: relative;
+  width: 0.5rem;
+  height: 0.5rem;
+  border-radius: 50%;
+  background: var(--tone-fill, var(--primary));
+  flex-shrink: 0;
+}
+
+.arca-cuadrillas .live-dot::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: inherit;
+  animation: arca-cuadrillas-ping 1.6s infinite;
+}
+
+@keyframes arca-cuadrillas-ping {
+  75%,
+  100% {
+    transform: scale(2.4);
+    opacity: 0;
+  }
+}
+
+/* ---------- styles/forms.css ---------- */
+/* Campos de formulario */
+.arca-cuadrillas .field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.375rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--text-soft);
+}
+
+.arca-cuadrillas .input {
+  width: 100%;
+  padding: 0.625rem 0.75rem;
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+  background: var(--surface-low);
+  color: var(--text);
+  font-size: 0.875rem;
+  font-weight: 400;
+  outline: none;
+}
+
+.arca-cuadrillas .input:focus {
+  border-color: var(--primary);
+}
+
+.arca-cuadrillas textarea.input {
+  resize: vertical;
+  min-height: 5rem;
+}
+
+.arca-cuadrillas .input option {
+  background: var(--surface);
+  color: var(--text);
+}
+
+.arca-cuadrillas .field-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.75rem;
+}
+
+/* Opciones tipo botón (radio) */
+.arca-cuadrillas .choices {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.arca-cuadrillas .choice {
+  display: flex;
+  align-items: center;
+  gap: 0.375rem;
+  padding: 0.5rem 0.75rem;
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+  background: var(--surface-low);
+  font-size: 0.8125rem;
+  font-weight: 500;
+  color: var(--text);
+  cursor: pointer;
+}
+
+.arca-cuadrillas .choice:has(input:checked) {
+  border-color: var(--tone-fill);
+  background: var(--tone-bg);
+  color: var(--tone-on);
+}
+
+.arca-cuadrillas .choice input {
+  accent-color: var(--tone-fill);
+  margin: 0;
+}
+
+/* ---------- components/Badge/Badge.css ---------- */
+.arca-cuadrillas .badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  padding: 0.1875rem 0.5rem;
+  border-radius: 0.375rem;
+  font-size: 0.6875rem;
+  font-weight: 600;
+  white-space: nowrap;
+  background: var(--tone-bg);
+  color: var(--tone-on);
+}
+
+/* ---------- components/Button/Button.css ---------- */
+.arca-cuadrillas .btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.5625rem 1rem;
+  border-radius: var(--radius);
+  font-size: 0.8125rem;
+  font-weight: 600;
+  white-space: nowrap;
+  transition: background-color 0.2s, filter 0.2s;
+}
+
+.arca-cuadrillas .btn--primary {
+  background: var(--primary);
+  color: var(--on-primary);
+}
+
+.arca-cuadrillas .btn--primary:hover {
+  filter: brightness(1.08);
+}
+
+.arca-cuadrillas .btn--secondary {
+  background: var(--surface-low);
+  border: 1px solid var(--border);
+}
+
+.arca-cuadrillas .btn--secondary:hover {
+  background: var(--surface-high);
+}
+
+.arca-cuadrillas .btn--danger {
+  background: var(--error-bg);
+  color: var(--on-error-bg);
+}
+
+.arca-cuadrillas .btn--danger:hover {
+  filter: brightness(1.05);
+}
+
+.arca-cuadrillas .btn--ghost {
+  color: var(--text-soft);
+}
+
+.arca-cuadrillas .btn--ghost:hover {
+  background: var(--surface-low);
+  color: var(--text);
+}
+
+.arca-cuadrillas .btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* ---------- components/Card/Card.css ---------- */
+.arca-cuadrillas .card {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  min-width: 0;
+  padding: 1.25rem;
+  border-radius: var(--radius-lg);
+  background: var(--glass);
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow);
+  backdrop-filter: blur(16px);
+}
+
+.arca-cuadrillas .card__header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+
+.arca-cuadrillas .card__title {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.9375rem;
+}
+
+.arca-cuadrillas .card__title .material-symbols-outlined {
+  color: var(--primary);
+}
+
+/* ---------- components/Modal/Modal.css ---------- */
+/* Móvil: hoja que sube desde abajo · Escritorio: ventana centrada */
+.arca-cuadrillas .modal {
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  background: rgba(5, 12, 16, 0.5);
+  backdrop-filter: blur(4px);
+}
+
+.arca-cuadrillas .modal__panel {
+  width: 100%;
+  max-width: 30rem;
+  max-height: calc(100dvh - 2rem);
+  display: flex;
+  flex-direction: column;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+  box-shadow: var(--shadow);
+}
+
+@media (min-width: 640px) {
+  .arca-cuadrillas .modal { align-items: center; padding: 1rem; }
+  .arca-cuadrillas .modal__panel { border-radius: var(--radius-lg); }
+}
+
+.arca-cuadrillas .modal__header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1.25rem 1.25rem 0.5rem;
+}
+
+.arca-cuadrillas .modal__header h3 {
+  font-size: 1.0625rem;
+}
+
+.arca-cuadrillas .modal__header button {
+  color: var(--text-soft);
+}
+
+.arca-cuadrillas .modal__body {
+  padding: 0.5rem 1.25rem 1.25rem;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.arca-cuadrillas .modal__footer {
+  display: flex;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  padding: 1rem 1.25rem;
+  border-top: 1px solid var(--border);
+}
+
+.arca-cuadrillas .modal__body-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+/* ---------- components/Toasts/Toasts.css ---------- */
+/* Móvil: arriba, debajo del header */
+.arca-cuadrillas .toasts {
+  position: fixed;
+  z-index: 80;
+  top: calc(var(--header-h) + 0.5rem);
+  left: var(--gutter);
+  right: var(--gutter);
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  pointer-events: none;
+}
+
+/* Escritorio: esquina inferior derecha */
+@media (min-width: 768px) {
+  .arca-cuadrillas .toasts {
+    top: auto;
+    left: auto;
+    bottom: 1.5rem;
+    right: 1.5rem;
+    width: 22rem;
+  }
+}
+
+.arca-cuadrillas .toast {
+  pointer-events: auto;
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  padding: 0.75rem 0.75rem 0.75rem 1rem;
+  border-radius: var(--radius);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-left: 3px solid var(--tone-fill);
+  box-shadow: var(--shadow);
+  animation: arca-cuadrillas-toast-in 0.25s ease-out;
+}
+
+.arca-cuadrillas .toast__text {
+  flex: 1;
+}
+
+.arca-cuadrillas .toast__title {
+  font-size: 0.8125rem;
+  font-weight: 600;
+}
+
+.arca-cuadrillas .toast__message {
+  font-size: 0.75rem;
+  color: var(--text-soft);
+}
+
+.arca-cuadrillas .toast button {
+  color: var(--text-soft);
+}
+
+@keyframes arca-cuadrillas-toast-in {
+  from {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+}
+
+/* ---------- components/Header/Header.css ---------- */
+.arca-cuadrillas .header {
+  position: fixed;
+  inset: 0 0 auto 0;
+  z-index: 40;
+  height: var(--header-h);
+  padding: 0 var(--gutter);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  background: var(--glass);
+  border-bottom: 1px solid var(--border);
+  backdrop-filter: blur(20px);
+}
+
+.arca-cuadrillas .header__brand {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  min-width: 0;
+}
+
+.arca-cuadrillas .header__name {
+  font-family: var(--font-title);
+  font-size: 1.0625rem;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.arca-cuadrillas .header__name strong {
+  color: var(--primary);
+}
+
+.arca-cuadrillas .header__tagline {
+  font-size: 0.6875rem;
+  color: var(--text-soft);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.arca-cuadrillas .header__brand .badge {
+  display: none;
+}
+
+@media (min-width: 640px) {
+  .arca-cuadrillas .header__brand .badge { display: inline-flex; }
+}
+
+.arca-cuadrillas .header__theme {
+  width: 2.25rem;
+  height: 2.25rem;
+  flex-shrink: 0;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background: var(--surface-low);
+  border: 1px solid var(--border);
+  color: var(--text-soft);
+}
+
+.arca-cuadrillas .header__theme:hover {
+  color: var(--primary);
+}
+
+
+/* ---------- modules/cuadrillas/CuadrillasPage.css ---------- */
+.arca-cuadrillas .admin {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 1.5rem var(--gutter) 2.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.arca-cuadrillas .admin__intro h1 {
+  font-size: 1.5rem;
+  font-weight: 800;
+}
+
+@media (min-width: 768px) {
+  .arca-cuadrillas .admin__intro h1 { font-size: 2rem; }
+}
+
+/* Pestañas: se deslizan de lado en móvil */
+.arca-cuadrillas .admin__tabs {
+  display: flex;
+  gap: 0.25rem;
+  padding: 0.25rem;
+  border-radius: var(--radius);
+  background: var(--surface-low);
+  border: 1px solid var(--border);
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.arca-cuadrillas .admin__tabs button {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 0.875rem;
+  border-radius: 0.5rem;
+  font-size: 0.8125rem;
+  font-weight: 500;
+  white-space: nowrap;
+  color: var(--text-soft);
+}
+
+.arca-cuadrillas .admin__tabs button:hover {
+  color: var(--text);
+}
+
+.arca-cuadrillas .admin__tabs button.is-active {
+  background: var(--primary-bg);
+  color: var(--on-primary-bg);
+  font-weight: 600;
+}
+
+.arca-cuadrillas .admin__count {
+  min-width: 1.25rem;
+  padding: 0 0.375rem;
+  border-radius: 1rem;
+  background: var(--error);
+  color: var(--surface);
+  font-size: 0.6875rem;
+  font-weight: 700;
+  text-align: center;
+}
+
+
+/* ---------- modules/cuadrillas/jobs/Jobs.css ---------- */
+.arca-cuadrillas .sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+}
+
+/* ---------- Filtros por avance ---------- */
+.arca-cuadrillas .jobs__filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.arca-cuadrillas .jobs__filters button {
+  padding: 0.375rem 0.75rem;
+  border-radius: 1rem;
+  border: 1px solid var(--border);
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: var(--text-soft);
+}
+
+.arca-cuadrillas .jobs__filters button.is-active {
+  background: var(--surface-high);
+  border-color: var(--text-soft);
+  color: var(--text);
+  font-weight: 600;
+}
+
+.arca-cuadrillas .jobs__empty {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 2rem 1rem;
+  border-radius: var(--radius);
+  border: 1px dashed var(--border);
+  font-size: 0.8125rem;
+}
+
+/* ---------- Tarjetas de trabajo ---------- */
+.arca-cuadrillas .jobs {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 0.875rem;
+}
+
+.arca-cuadrillas .job {
+  display: grid;
+  overflow: hidden;
+  border-radius: var(--radius-lg);
+  background: var(--surface-low);
+  border: 1px solid var(--border);
+  border-left: 4px solid var(--tone-fill);
+  font-size: 0.8125rem;
+}
+
+/* Escritorio: fotos a la izquierda, información a la derecha */
+@media (min-width: 720px) {
+  .arca-cuadrillas .job { grid-template-columns: 13rem minmax(0, 1fr); }
+}
+
+.arca-cuadrillas .job__photos {
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: 1fr;
+  gap: 2px;
+  min-height: 9rem;
+  background: var(--surface-high);
+}
+
+@media (min-width: 720px) {
+  .arca-cuadrillas .job__photos {
+    grid-auto-flow: row;
+    grid-template-rows: 2fr;
+    grid-auto-rows: 1fr;
+  }
+  .arca-cuadrillas .job__photos > :first-child { grid-column: 1 / -1; }
+}
+
+.arca-cuadrillas .job__photo {
+  position: relative;
+  min-height: 4rem;
+  background-color: var(--surface-high);
+  background-image: linear-gradient(135deg, var(--primary-bg), var(--tertiary-bg));
+  background-size: cover;
+  background-position: center;
+}
+
+.arca-cuadrillas .job__photo:hover {
+  filter: brightness(1.1);
+}
+
+.arca-cuadrillas .job__more {
+  position: absolute;
+  left: 0.5rem;
+  bottom: 0.5rem;
+  padding: 0.125rem 0.5rem;
+  border-radius: 1rem;
+  background: rgba(0, 0, 0, 0.6);
+  color: #fff;
+  font-size: 0.6875rem;
+  font-weight: 600;
+}
+
+.arca-cuadrillas .job__nophoto {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.25rem;
+  color: var(--error);
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+.arca-cuadrillas .job__body {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.625rem;
+  padding: 0.875rem 1rem;
+}
+
+.arca-cuadrillas .job__head {
+  display: flex;
+  align-items: center;
+  gap: 0.625rem;
+}
+
+.arca-cuadrillas .job__type {
+  display: grid;
+  place-items: center;
+  width: 2.25rem;
+  height: 2.25rem;
+  flex-shrink: 0;
+  border-radius: 0.625rem;
+  background: var(--tone-bg);
+  color: var(--tone-on);
+}
+
+.arca-cuadrillas .job__title {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.arca-cuadrillas .job__title strong {
+  font-size: 0.9375rem;
+}
+
+.arca-cuadrillas .job__title span {
+  color: var(--text-soft);
+}
+
+.arca-cuadrillas .job__tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.375rem;
+}
+
+.arca-cuadrillas .job__tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.1875rem 0.5rem;
+  border-radius: 0.375rem;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  font-size: 0.6875rem;
+  font-weight: 500;
+  color: var(--text-soft);
+}
+
+/* Avance del reporte en 4 pasos */
+.arca-cuadrillas .job-steps {
+  display: grid;
+  grid-template-columns: repeat(var(--steps, 4), 1fr);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.arca-cuadrillas .job-steps li {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.25rem;
+  text-align: center;
+  font-size: 0.625rem;
+  font-weight: 600;
+  color: var(--text-soft);
+}
+
+/* Línea que une los pasos */
+.arca-cuadrillas .job-steps li:not(:first-child)::before {
+  content: '';
+  position: absolute;
+  top: 0.6875rem;
+  right: 50%;
+  width: 100%;
+  height: 2px;
+  background: var(--border);
+  z-index: 0;
+}
+
+.arca-cuadrillas .job-steps li.is-done:not(:first-child)::before,
+.arca-cuadrillas .job-steps li.is-current:not(:first-child)::before {
+  background: var(--success);
+}
+
+.arca-cuadrillas .job-steps__dot {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  place-items: center;
+  width: 1.375rem;
+  height: 1.375rem;
+  border-radius: 50%;
+  background: var(--surface-high);
+  font-size: 0.6875rem;
+}
+
+.arca-cuadrillas .job-steps li.is-done .job-steps__dot {
+  background: var(--success);
+  color: var(--surface);
+}
+
+.arca-cuadrillas .job-steps li.is-current {
+  color: var(--tone);
+}
+
+.arca-cuadrillas .job-steps li.is-current .job-steps__dot {
+  background: var(--tone-fill);
+  color: var(--surface);
+  box-shadow: 0 0 0 3px var(--tone-bg);
+}
+
+/* Historial del seguimiento */
+.arca-cuadrillas .job__note {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.375rem;
+  padding: 0.5rem 0.625rem;
+  border-radius: 0.5rem;
+  background: var(--surface);
+  font-size: 0.75rem;
+  color: var(--text-soft);
+}
+
+.arca-cuadrillas .job__note .material-symbols-outlined {
+  color: var(--primary);
+  margin-top: 1px;
+}
+
+.arca-cuadrillas .job__link {
+  color: var(--primary);
+  font-weight: 600;
+  text-decoration: underline;
+}
+
+.arca-cuadrillas .job__actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.arca-cuadrillas .job__spacer {
+  flex: 1;
+}
+
+/* ---------- Visor de fotos ---------- */
+.arca-cuadrillas .job-photo {
+  width: 100%;
+  max-height: 60vh;
+  object-fit: contain;
+  border-radius: var(--radius);
+  background: var(--surface-low);
+}
+
+.arca-cuadrillas .job-photo__nav {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.arca-cuadrillas .job-photo__nav button {
+  width: 4rem;
+  height: 3rem;
+  border-radius: 0.5rem;
+  background-size: cover;
+  background-position: center;
+  border: 2px solid transparent;
+  opacity: 0.7;
+}
+
+.arca-cuadrillas .job-photo__nav button.is-active {
+  border-color: var(--primary);
+  opacity: 1;
+}
+
+/* ---------- Selector de fotos del formulario ---------- */
+.arca-cuadrillas .photos-pick {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.arca-cuadrillas .photos-pick__item,
+.arca-cuadrillas .photos-pick__add {
+  position: relative;
+  width: 5.5rem;
+  height: 5.5rem;
+  border-radius: var(--radius);
+  overflow: hidden;
+}
+
+.arca-cuadrillas .photos-pick__item img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.arca-cuadrillas .photos-pick__item button {
+  position: absolute;
+  top: 0.25rem;
+  right: 0.25rem;
+  display: grid;
+  place-items: center;
+  width: 1.5rem;
+  height: 1.5rem;
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.6);
+  color: #fff;
+}
+
+.arca-cuadrillas .photos-pick__add {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.25rem;
+  border: 1px dashed var(--primary);
+  color: var(--primary);
+  font-size: 0.6875rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.arca-cuadrillas .photos-pick__add input {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  cursor: pointer;
+}
+
+.arca-cuadrillas .job-error {
+  padding: 0.625rem 0.75rem;
+  border-radius: var(--radius);
+  background: var(--error-bg);
+  color: var(--on-error-bg);
+  font-size: 0.8125rem;
+}
+
+/* Texto explicativo dentro de las ventanas del flujo */
+.arca-cuadrillas .job-intro {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.5rem;
+  padding: 0.625rem 0.75rem;
+  border-radius: var(--radius);
+  background: var(--primary-bg);
+  color: var(--on-primary-bg);
+  font-size: 0.8125rem;
+  line-height: 1.45;
+}
+
+.arca-cuadrillas .job-intro .material-symbols-outlined {
+  flex-shrink: 0;
+}
+
+/* Notas del admin de tandeo resaltadas */
+.arca-cuadrillas .job__note--admin {
+  background: var(--primary-bg);
+  color: var(--on-primary-bg);
+}
+
+.arca-cuadrillas .job__note--admin .material-symbols-outlined {
+  color: inherit;
+}
+
+/* Filtro de sector en el encabezado */
+.arca-cuadrillas .jobs__sector {
+  display: flex;
+  align-items: center;
+  gap: 0.375rem;
+  color: var(--text-soft);
+}
+
+.arca-cuadrillas .jobs__sector .input {
+  width: auto;
+  padding: 0.5rem 0.75rem;
+}
+
+/* ---------- modules/cuadrillas/crews/Crews.css ---------- */
+/* Una tarjeta por cuadrilla: 1 columna en móvil, 2 en tablet, 3 en escritorio */
+.arca-cuadrillas .crews {
+  display: grid;
+  gap: 1rem;
+  align-items: start;
+}
+
+@media (min-width: 720px) {
+  .arca-cuadrillas .crews { grid-template-columns: repeat(2, 1fr); }
+}
+
+@media (min-width: 1100px) {
+  .arca-cuadrillas .crews { grid-template-columns: repeat(3, 1fr); }
+}
+
+.arca-cuadrillas .crew {
+  display: flex;
+  flex-direction: column;
+  gap: 0.875rem;
+  padding: 1.25rem;
+  border-radius: var(--radius-lg);
+  background: var(--glass);
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow);
+}
+
+.arca-cuadrillas .crew__head {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.arca-cuadrillas .crew__icon {
+  display: grid;
+  place-items: center;
+  width: 2.5rem;
+  height: 2.5rem;
+  flex-shrink: 0;
+  border-radius: 50%;
+  background: var(--primary-bg);
+  color: var(--on-primary-bg);
+}
+
+.arca-cuadrillas .crew__title {
+  flex: 1;
+  min-width: 0;
+}
+
+.arca-cuadrillas .crew__title h3 {
+  font-size: 0.9375rem;
+}
+
+.arca-cuadrillas .crew__title p {
+  font-size: 0.6875rem;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.arca-cuadrillas .crew__empty {
+  font-size: 0.8125rem;
+}
+
+.arca-cuadrillas .crew__members {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.375rem;
+}
+
+.arca-cuadrillas .crew__members li {
+  display: flex;
+  align-items: center;
+  gap: 0.625rem;
+  padding: 0.5rem 0.625rem;
+  border-radius: var(--radius);
+  background: var(--surface-low);
+  font-size: 0.8125rem;
+}
+
+.arca-cuadrillas .crew__members li > .material-symbols-outlined {
+  color: var(--primary);
+}
+
+.arca-cuadrillas .crew__members li > div {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.arca-cuadrillas .crew__members li > div span {
+  font-size: 0.6875rem;
+}
+
+.arca-cuadrillas .crew__members button {
+  display: grid;
+  place-items: center;
+  width: 2rem;
+  height: 2rem;
+  border-radius: 50%;
+  color: var(--text-soft);
+}
+
+.arca-cuadrillas .crew__members button:hover {
+  background: var(--surface-high);
+  color: var(--primary);
+}
+
+.arca-cuadrillas .crew .btn {
+  align-self: flex-start;
+}
+
+.arca-cuadrillas .arca-logout { position: absolute; top: .85rem; right: 5.5rem; z-index: 10; border: 1px solid var(--border); background: var(--surface); color: var(--text); border-radius: .6rem; padding: .55rem .8rem; cursor: pointer; }

@@ -42,7 +42,7 @@ service cloud.firestore {
     function isMaintenance() {
       return signedIn()
         && request.auth.uid ==
-          '6K9PgDGfgrhjn6wWTXQgvMzA8BB2'
+          'wDeg2YJdXjdyRkTN4XSnvjv18iB3'
         && get(
           /databases/$(database)/documents/usuarios/$(request.auth.uid)
         ).data.role == 'maintenance-crew';
@@ -166,7 +166,7 @@ service cloud.firestore {
           && request.resource.data.role == 'civil-protection'
         )
         || (
-          uid == '6K9PgDGfgrhjn6wWTXQgvMzA8BB2'
+          uid == 'wDeg2YJdXjdyRkTN4XSnvjv18iB3'
           && request.resource.data.role == 'maintenance-crew'
         );
     }
@@ -412,7 +412,16 @@ service cloud.firestore {
           'sin-evaluar'
         && request.resource.data.creadoEn == request.time;
 
-      allow update, delete: if false;
+      allow update: if (isWaterOperator() || isMaintenance())
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['estado', 'fotoReparacion'])
+        && citizenWorkState(reporteId)
+        && (!request.resource.data.diff(resource.data).affectedKeys().hasAny(['fotoReparacion'])
+          || (isMaintenance()
+            && request.resource.data.estado == 'reparado'
+            && request.resource.data.fotoReparacion == getAfter(
+              /databases/$(database)/documents/systemReports/$('ciudadano_' + reporteId)
+            ).data.workDone.photos[0]));
+      allow delete: if false;
     }
 
     // ==========================================
@@ -426,6 +435,7 @@ service cloud.firestore {
       // Ciudadanía solo los sectores activos.
       allow get, list: if isWaterOperator()
         || isCivilProtection()
+        || isMaintenance()
         || (
           signedIn()
           && resource.data.active == true
@@ -570,11 +580,133 @@ service cloud.firestore {
     // REPORTES DE OPERACIONES Y PROTECCIÓN CIVIL
     // ==========================================
 
+    function citizenWorkState(id) {
+      let workId = 'ciudadano_' + id;
+      let work = getAfter(/databases/$(database)/documents/systemReports/$(workId)).data;
+      return work.source == 'ciudadano'
+        && work.citizenReportId == id
+        && work.citizenUid == resource.data.usuarioUid
+        && (
+          (isWaterOperator() && crewWorkStatus(work) == 'asignado'
+            && request.resource.data.estado == 'en-revision')
+          || (isMaintenance() && crewWorkStatus(work) == 'en-proceso'
+            && request.resource.data.estado == 'en-reparacion')
+          || (isMaintenance() && work.status == 'terminado'
+            && request.resource.data.estado == 'reparado')
+          || (isWaterOperator() && work.status == 'resuelto'
+            && request.resource.data.estado == 'resuelto')
+        );
+    }
+
+    function crewWorkStatus(report) {
+      return report.status == 'asignado'
+        && report.assignment.get('progress', {}).get('state', '') == 'en-proceso'
+        ? 'en-proceso' : report.status;
+    }
+
+    function validCrewPhoto(photo) {
+      return photo is string && photo.size() <= 160000
+        && photo.matches('data:image/jpeg;base64,[A-Za-z0-9+/=]+');
+    }
+
+    function validCrewEvidence(work, leader) {
+      return work is map && work.keys().hasOnly(['note', 'photos', 'by', 'at'])
+        && work.note is string && work.note.size() >= 10 && work.note.size() <= 280
+        && work.by == leader && work.at is string
+        && work.photos is list && work.photos.size() >= 1 && work.photos.size() <= 3
+        && validCrewPhoto(work.photos[0])
+        && (work.photos.size() < 2 || validCrewPhoto(work.photos[1]))
+        && (work.photos.size() < 3 || validCrewPhoto(work.photos[2]));
+    }
+
+    function validDirectCrewAssignment(id, work) {
+      let assignment = work.assignment;
+      let progress = assignment.progress;
+      let citizenPath = /databases/$(database)/documents/reportes/$(work.citizenReportId);
+      return work.source == 'ciudadano'
+        && id == 'ciudadano_' + work.citizenReportId
+        && work.status == 'asignado'
+        && validSectorId(work.sectorId)
+        && get(citizenPath).data.usuarioUid == work.citizenUid
+        && get(citizenPath).data.estado == 'pendiente'
+        && getAfter(citizenPath).data.estado == 'en-reparacion'
+        && assignment.keys().hasOnly(['crew', 'instructions', 'at', 'progress'])
+        && assignment.crew is string && assignment.crew.size() <= 120
+        && assignment.instructions == '' && assignment.at is string
+        && progress.keys().hasOnly(['state', 'leader', 'member', 'at'])
+        && progress.state == 'en-proceso' && progress.at == assignment.at
+        && progress.leader == progress.member.name
+        && progress.leader is string && progress.leader.size() >= 2 && progress.leader.size() <= 60
+        && get(/databases/$(database)/documents/sectorCrews/$(work.sectorId))
+          .data.members.hasAny([progress.member]);
+    }
+
+    function validDirectCrewReport(work) {
+      let citizen = get(/databases/$(database)/documents/reportes/$(work.citizenReportId)).data;
+      return work.keys().hasOnly([
+        'source', 'citizenReportId', 'citizenUid', 'sectorId', 'type', 'colonia',
+        'description', 'position', 'photos', 'reporter', 'status', 'assignment', 'creadoEn'
+      ])
+        && work.type == citizen.tipo
+        && work.colonia == citizen.titulo
+        && work.description == citizen.descripcion
+        && work.position == citizen.ubicacion && validPoint(work.position)
+        && work.photos == (citizen.get('fotoBase64', null) == null ? [] : [citizen.fotoBase64])
+        && work.reporter == (citizen.get('autorNombre', '') == '' ? 'Ciudadanía' : citizen.autorNombre)
+        && work.creadoEn == request.time;
+    }
+
+    match /sectorCrews/{id} {
+      allow read: if isMaintenance();
+      allow create, update: if isMaintenance() && validSectorId(id)
+        && request.resource.data.keys().hasOnly(['sectorId', 'members', 'actualizadoEn'])
+        && request.resource.data.sectorId == id
+        && request.resource.data.members is list
+        && request.resource.data.members.size() <= 30
+        && request.resource.data.actualizadoEn == request.time;
+    }
+
+    match /workUpdates/{id} {
+      function matchesWork() {
+        let work = getAfter(/databases/$(database)/documents/systemReports/$(id)).data;
+        let update = request.resource.data;
+        return work.source in ['ciudadano', 'operaciones']
+          && update.keys().hasOnly([
+            'reportId', 'sectorId', 'sectorName', 'title', 'position', 'status', 'actualizadoEn'
+          ])
+          && update.reportId == id && update.sectorId == work.sectorId
+          && update.position == work.position && validPoint(update.position)
+          && update.sectorName is string && update.sectorName.size() <= 120
+          && update.title is string && update.title.size() <= 120
+          && update.actualizadoEn == request.time
+          && update.status == crewWorkStatus(work)
+          && ((isWaterOperator() && update.status in ['asignado', 'resuelto'])
+            || (isMaintenance() && update.status in ['en-proceso', 'terminado']));
+      }
+      allow read: if isMaintenance() || isWaterOperator();
+      allow create: if matchesWork();
+      allow update: if matchesWork()
+        && request.resource.data.diff(resource.data).affectedKeys()
+          .hasOnly(['status', 'actualizadoEn']);
+    }
+
     match /systemReports/{id} {
+
+      allow get: if isMaintenance() && id.matches('ciudadano_.+')
+        && (!exists(/databases/$(database)/documents/systemReports/$(id))
+          || resource.data.source == 'ciudadano');
+      allow create: if isMaintenance()
+        && validDirectCrewAssignment(id, request.resource.data)
+        && validDirectCrewReport(request.resource.data);
+      allow update: if isMaintenance() && resource.data.status == 'nuevo'
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status', 'assignment'])
+        && validDirectCrewAssignment(id, request.resource.data);
 
       allow read: if isWaterOperator()
         || isCivilProtection()
-        || isMaintenance();
+        || (isMaintenance()
+          && resource.data.source in ['ciudadano', 'operaciones']
+          && resource.data.status in ['asignado', 'terminado', 'resuelto']);
 
       // Crear reportes institucionales.
       allow create: if (
@@ -705,15 +837,25 @@ service cloud.firestore {
         || (
 
           isMaintenance()
+          && resource.data.source in ['ciudadano', 'operaciones']
           && resource.data.status == 'asignado'
-          && request.resource.data.status == 'terminado'
-
-          && request.resource.data.diff(
-            resource.data
-          ).affectedKeys().hasOnly([
-            'status',
-            'workDone'
-          ])
+          && (
+            (request.resource.data.status == 'asignado'
+              && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['assignment'])
+              && !('progress' in resource.data.assignment)
+              && request.resource.data.assignment.diff(resource.data.assignment)
+                .affectedKeys().hasOnly(['progress'])
+              && request.resource.data.assignment.progress.keys().hasOnly(['state', 'leader', 'at'])
+              && request.resource.data.assignment.progress.state == 'en-proceso'
+              && request.resource.data.assignment.progress.leader is string
+              && request.resource.data.assignment.progress.leader.size() >= 2
+              && request.resource.data.assignment.progress.leader.size() <= 60
+              && request.resource.data.assignment.progress.at is string)
+            || (request.resource.data.status == 'terminado'
+              && resource.data.assignment.progress.state == 'en-proceso'
+              && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status', 'workDone'])
+              && validCrewEvidence(request.resource.data.workDone, resource.data.assignment.progress.leader))
+          )
         )
       );
 

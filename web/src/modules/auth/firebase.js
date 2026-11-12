@@ -128,7 +128,7 @@ export async function ensureProfile(user) {
 
   if (!snapshot.exists()) {
     const error = new Error(
-      'La cuenta existe en Authentication, pero no tiene perfil en Firestore.'
+      `La cuenta existe en Authentication, pero no tiene perfil en Firestore. Proyecto: ${db.app.options.projectId}; documento: ${reference.path}.`
     );
     error.code = 'account/missing-profile';
     throw error;

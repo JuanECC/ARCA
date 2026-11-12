@@ -14,6 +14,7 @@ import MaintenanceCrew from '../modules/maintenance-crew/MaintenanceCrew';
 import './citizen-layout.css';
 import './operator-layout.css';
 import './civil-protection-layout.css';
+import './maintenance-layout.css';
 
 const panels = {
   admin: AdminPanel,
@@ -103,7 +104,8 @@ export default function App() {
   const isCitizen = session.role === 'citizen';
   const isWater = session.role === 'water-operator';
   const isCivil = session.role === 'civil-protection';
-  const ownHeader = isCitizen || isWater || isCivil;
+  const isMaintenance = session.role === 'maintenance-crew';
+  const ownHeader = isCitizen || isWater || isCivil || isMaintenance;
 
   const pageClass = isCitizen
     ? 'page page--citizen'
@@ -111,7 +113,7 @@ export default function App() {
       ? 'page page--water-operator'
       : isCivil
         ? 'page page--civil-protection'
-        : 'page page--narrow';
+        : isMaintenance ? 'page page--maintenance' : 'page page--narrow';
 
   async function logout() {
     try {

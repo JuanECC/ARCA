@@ -15,6 +15,7 @@
  */
 import { useEffect, useState } from 'react';
 import { CircleMarker, MapContainer, TileLayer, Popup, Tooltip, useMap, useMapEvents } from 'react-leaflet';
+import { reportMapStatus } from '../reportMapStatus';
 import { auth } from '../auth/firebase';
 import { collection, getFirestore, onSnapshot, query, where } from 'firebase/firestore';
 import CitizenProfile from './CitizenProfile';
@@ -344,7 +345,7 @@ function RiskMap({ theme, colonias, fugas, drenajes, reports, civilAlerts = [], 
       id: r.id, name: r.titulo,
       position: [r.ubicacion.lat, r.ubicacion.lng],
       detail: r.descripcion,
-      tone: r.estado === 'resuelto' ? 'success' : r.tipo === 'inundacion' ? 'error' : 'warning',
+      status: reportMapStatus(r.estado),
       report: r,
     }));
 
@@ -397,13 +398,11 @@ function RiskMap({ theme, colonias, fugas, drenajes, reports, civilAlerts = [], 
               key={p.id}
               center={p.position}
               radius={10}
-              className={`ha-map__point ha-tone-${p.tone}`}
+              pathOptions={{ color: p.status.color, fillColor: p.status.color, fillOpacity: 0.85 }}
               eventHandlers={{ click: () => p.colonia && onSelect(p.colonia) }}
             >
-              <Tooltip direction="top">
-                <strong>{p.name}</strong>
-                <br />
-                {p.detail}
+              <Tooltip key={p.report.estado} direction={p.status.hammer ? 'right' : 'top'} permanent={Boolean(p.status.hammer)} offset={[p.status.hammer ? 12 : 0, 0]}>
+                {p.status.hammer ? <span role="img" aria-label="En reparación" title="En reparación">🔨</span> : <strong>{p.name} · {p.status.label}</strong>}
               </Tooltip>
               {p.report && <Popup minWidth={220}>
                 <div className="ha-report-popup">
@@ -411,9 +410,11 @@ function RiskMap({ theme, colonias, fugas, drenajes, reports, civilAlerts = [], 
                   <p>{p.report.descripcion}</p>
                   <p>Reportado por: {p.report.autorNombre || 'Ciudadano (reporte anterior)'}</p>
                   <p>Tipo: {REPORT_TYPES.find(t => t.value === p.report.tipo)?.label || p.report.tipo}</p>
-                  <p>Estado: {p.report.estado} · Precisión: ±{p.report.precisionMetros} m</p>
+                  <p>Estado: {p.status.label} · Precisión: ±{p.report.precisionMetros} m</p>
                   <p>Fecha: {p.report.creadoEn?.toDate?.().toLocaleString('es-MX') || 'Reciente'}</p>
-                  {p.report.fotoBase64 && <img src={p.report.fotoBase64} alt="Evidencia del reporte" style={{width:'100%',maxHeight:160,objectFit:'cover'}} />}
+                  {(['reparado', 'resuelto'].includes(p.report.estado) && p.report.fotoReparacion)
+                    ? <img src={p.report.fotoReparacion} alt="Evidencia de la reparación" style={{width:'100%',maxHeight:160,objectFit:'contain'}} />
+                    : p.report.fotoBase64 && <img src={p.report.fotoBase64} alt="Evidencia original del reporte" style={{width:'100%',maxHeight:160,objectFit:'cover'}} />}
                 </div>
               </Popup>}
             </CircleMarker>
@@ -630,10 +631,30 @@ export default function CitizenReports({ onLogout, profile: account }) {
   });
   useEffect(() => { try { localStorage.setItem('arca-stats-open', String(statsOpen)); } catch {} }, [statsOpen]);
   const [alertsOpen, setAlertsOpen] = useState(false);
-  useEffect(() => subscribeReports(
-    data => { setReports(data); setLoading(false); setError(''); },
-    err => { setError(err.code === 'permission-denied' ? 'Las reglas de Firestore no permiten consultar los reportes.' : err.message); setLoading(false); }
-  ), []);
+  useEffect(() => {
+    let previousStates = new Map();
+    return subscribeReports(
+      data => {
+        for (const report of data) {
+          const previous = previousStates.get(report.id);
+          if (report.usuarioUid !== auth?.currentUser?.uid || previous === undefined || previous === report.estado) continue;
+          if (report.estado === 'en-reparacion') {
+            notify({ title: 'Tu reporte está en reparación', message: report.titulo, icon: 'construction', tone: 'warning' });
+          } else if (report.estado === 'reparado' || report.estado === 'resuelto') {
+            notify({
+              title: report.estado === 'reparado' ? 'La cuadrilla reparó tu reporte' : 'Tu reporte fue resuelto',
+              message: report.titulo, icon: 'check_circle', tone: 'success',
+            });
+          }
+        }
+        previousStates = new Map(data.map(report => [report.id, report.estado]));
+        setReports(data);
+        setLoading(false);
+        setError('');
+      },
+      err => { setError(err.code === 'permission-denied' ? 'Las reglas de Firestore no permiten consultar los reportes.' : err.message); setLoading(false); }
+    );
+  }, []);
   // Las alertas oficiales se publican en 'notices', no en 'reportes'.
   // audience === 'todos' es visible para cualquier sector ciudadano.
   useEffect(() => {
@@ -661,8 +682,8 @@ export default function CitizenReports({ onLogout, profile: account }) {
     place: r.titulo, street: REPORT_TYPES.find(t => t.value === r.tipo)?.label || r.tipo,
     ai: `Estado: ${r.estado} · Reportó: ${r.autorNombre || 'Ciudadano (reporte anterior)'}`, time: r.creadoEn?.toDate?.().toLocaleString('es-MX') || 'Reciente',
   }));
-  const alerts = mine.filter(r => r.estado === 'en-revision' || r.estado === 'resuelto').map(r => ({
-    id: r.id, title: r.titulo, detail: r.estado === 'resuelto' ? 'Tu reporte fue resuelto' : 'Tu reporte está en revisión',
+  const alerts = mine.filter(r => ['en-revision', 'en-reparacion', 'reparado', 'resuelto'].includes(r.estado)).map(r => ({
+    id: r.id, title: r.titulo, detail: reportMapStatus(r.estado).label,
   }));
   return <div className="ha" data-theme={theme}>
     <Header weather={weather} theme={theme} onToggleTheme={toggleTheme} onLogout={onLogout} onOpenProfile={() => setProfileOpen(true)} profilePhoto={citizenProfile?.fotoBase64}/>
