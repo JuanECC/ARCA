@@ -32,8 +32,11 @@ import {
   usernameFromName,
 } from './identity';
 
-const env = import.meta.env;
+// ==============================================
+// CONFIGURACIÓN DE FIREBASE
+// ==============================================
 
+const env = import.meta.env;
 const emulator = env.VITE_FIREBASE_EMULATORS === 'true';
 
 const config = {
@@ -64,7 +67,10 @@ const secondaryDb = secondaryApp
   ? getFirestore(secondaryApp)
   : null;
 
+// ==============================================
 // EMULADORES
+// ==============================================
+
 if (app && emulator) {
   connectAuthEmulator(
     auth,
@@ -82,39 +88,25 @@ if (app && emulator) {
   connectFirestoreEmulator(secondaryDb, '127.0.0.1', 8080);
 }
 
-// INICIO DE SESIÓN
+// ==============================================
+// INICIAR SESIÓN
+// ==============================================
+
 export async function login({ usuario, password }) {
   if (!auth) {
     throw new Error('Firebase no está configurado.');
   }
 
-  const username = usernameFromName(usuario);
-  const email = loginEmailForUsername(username);
+  const email = loginEmailForUsername(usuario);
 
-  console.log('Iniciando sesión:', username);
-  console.log('Correo de autenticación:', email);
-  console.log('Proyecto Firebase:', auth.app.options.projectId);
-
-  let credential;
-
-  try {
-    credential = await signInWithEmailAndPassword(
-      auth,
-      email,
-      password
-    );
-  } catch (error) {
-    console.error('Error Firebase Auth:', error.code);
-    console.error('Detalle:', error.message);
-    throw error;
-  }
+  const credential = await signInWithEmailAndPassword(
+    auth,
+    email,
+    password
+  );
 
   try {
-    const profile = await ensureProfile(credential.user);
-
-    console.log('Sesión iniciada correctamente');
-    console.log('Rol:', profile.role);
-
+    await ensureProfile(credential.user);
     return credential.user;
   } catch (error) {
     await signOut(auth);
@@ -122,14 +114,16 @@ export async function login({ usuario, password }) {
   }
 }
 
-// CONSULTAR PERFIL EN FIRESTORE
+// ==============================================
+// OBTENER PERFIL DE FIRESTORE
+// ==============================================
+
 export async function ensureProfile(user) {
   if (!db || !user) {
     throw new Error('No existe una sesión válida.');
   }
 
   const reference = doc(db, 'usuarios', user.uid);
-
   const snapshot = await getDoc(reference);
 
   if (!snapshot.exists()) {
@@ -144,91 +138,164 @@ export async function ensureProfile(user) {
 
   if (profile.uid !== user.uid) {
     const error = new Error(
-      'El UID del perfil no coincide con Firebase Authentication.'
+      'El UID del perfil no coincide con Authentication.'
     );
     error.code = 'account/invalid-profile';
     throw error;
   }
 
-  if (!profile.role) {
+  const validRoles = [
+    'admin',
+    'citizen',
+    'water-operator',
+    'civil-protection',
+    'maintenance-crew',
+  ];
+
+  if (!validRoles.includes(profile.role)) {
     const error = new Error(
-      'El usuario no tiene un rol asignado.'
+      'El usuario no tiene un rol válido.'
     );
-    error.code = 'account/missing-role';
+    error.code = 'account/invalid-role';
     throw error;
   }
 
   return profile;
 }
 
-// CREACIÓN DE CUENTAS
-async function createAccount(data, role, administrative) {
-  if (!secondaryAuth) {
+// ==============================================
+// REGISTRO AUTOMÁTICO DE CIUDADANOS
+// ==============================================
+
+export async function register(data) {
+  if (!auth || !db) {
     throw new Error('Firebase no está configurado.');
   }
 
-  const nombre = data.nombre.trim().replace(/\s+/g, ' ');
-  const usuario = usernameFromName(nombre);
-  const authEmail = authEmailForName(nombre);
-  const email = data.email.trim().toLowerCase();
+  const nombre = String(data.nombre ?? '')
+    .trim()
+    .replace(/\s+/g, ' ');
 
-  await setPersistence(
-    secondaryAuth,
-    inMemoryPersistence
-  );
+  const usuario = usernameFromName(nombre);
+  const email = String(data.email ?? '').trim().toLowerCase();
+  const authEmail = authEmailForName(nombre);
+
+  if (!email || !data.password) {
+    const error = new Error('Completa todos los campos.');
+    error.code = 'account/incomplete-data';
+    throw error;
+  }
+
+  let credential;
 
   try {
-    let credential;
-
-    try {
-      credential = await createUserWithEmailAndPassword(
-        secondaryAuth,
-        authEmail,
-        data.password
-      );
-    } catch (error) {
-      if (error.code !== 'auth/email-already-in-use') {
-        throw error;
-      }
-
-      // Recuperar un registro interrumpido.
-      credential = await signInWithEmailAndPassword(
-        secondaryAuth,
-        authEmail,
-        data.password
-      );
+    credential = await createUserWithEmailAndPassword(
+      auth,
+      authEmail,
+      data.password
+    );
+  } catch (error) {
+    if (error.code !== 'auth/email-already-in-use') {
+      throw error;
     }
 
-    const database = administrative ? db : secondaryDb;
+    // Recuperar un registro que quedó incompleto.
+    credential = await signInWithEmailAndPassword(
+      auth,
+      authEmail,
+      data.password
+    );
+  }
+
+  const reference = doc(db, 'usuarios', credential.user.uid);
+
+  try {
+    await setDoc(reference, {
+      uid: credential.user.uid,
+      nombre,
+      usuario,
+      email,
+      authEmail,
+      role: 'citizen',
+      tipo: 'comun',
+      creadoEn: serverTimestamp(),
+    });
+
+    return {
+      uid: credential.user.uid,
+      nombre,
+      usuario,
+      role: 'citizen',
+    };
+  } catch (error) {
+    console.error(
+      'Error al guardar perfil ciudadano:',
+      error.code,
+      error.message
+    );
+
+    await signOut(auth);
+    throw error;
+  }
+}
+
+// ==============================================
+// CREAR CUENTAS DESDE ADMINISTRACIÓN
+// ==============================================
+
+async function createManagedAccount(data) {
+  if (!secondaryAuth || !db) {
+    throw new Error('Firebase no está configurado.');
+  }
+
+  const nombre = String(data.nombre ?? '')
+    .trim()
+    .replace(/\s+/g, ' ');
+
+  const usuario = usernameFromName(nombre);
+  const authEmail = authEmailForName(nombre);
+  const email = String(data.email ?? '').trim().toLowerCase();
+  const role = data.role;
+
+  const validRoles = [
+    'citizen',
+    'water-operator',
+    'civil-protection',
+    'maintenance-crew',
+  ];
+
+  if (!validRoles.includes(role)) {
+    const error = new Error('Rol no permitido.');
+    error.code = 'account/invalid-role';
+    throw error;
+  }
+
+  await setPersistence(secondaryAuth, inMemoryPersistence);
+
+  try {
+    const credential = await createUserWithEmailAndPassword(
+      secondaryAuth,
+      authEmail,
+      data.password
+    );
 
     const reference = doc(
-      database,
+      db,
       'usuarios',
       credential.user.uid
     );
 
-    if ((await getDoc(reference)).exists()) {
-      const error = new Error(
-        'Ese nombre de usuario ya está registrado.'
-      );
-      error.code = 'account/name-taken';
-      throw error;
-    }
-
     await setDoc(reference, {
       uid: credential.user.uid,
-      email,
-      authEmail,
       nombre,
       usuario,
+      email,
+      authEmail,
       role,
-      ...(role === 'maintenance-crew'
-        ? {
-            operadorUid:
-              'WePWGhGitzWeggBe76Z8Av4o3yH3',
-          }
-        : {}),
       tipo: role === 'citizen' ? 'comun' : 'fijo',
+      ...(role === 'maintenance-crew'
+        ? { operadorUid: 'WePWGhGitzWeggBe76Z8Av4o3yH3' }
+        : {}),
       creadoEn: serverTimestamp(),
     });
 
@@ -238,30 +305,19 @@ async function createAccount(data, role, administrative) {
   }
 }
 
-// REGISTRO CIUDADANO
-export async function register(data) {
-  const result = await createAccount(
-    data,
-    'citizen',
-    false
-  );
-
-  await login({
-    usuario: result.usuario,
-    password: data.password,
-  });
-}
-
+// ==============================================
 // OPERACIONES ADMINISTRATIVAS
+// ==============================================
+
 export async function callAccount(name, data = {}) {
   if (!auth?.currentUser) {
     throw new Error('Debes iniciar sesión.');
   }
 
   if (name === 'createManagedAccount') {
-    // Provisional: migrar a Cloud Functions
-    // con autorización del administrador.
-    return createAccount(data, data.role, true);
+    // La autorización definitiva debe trasladarse
+    // a una Cloud Function con Firebase Admin SDK.
+    return createManagedAccount(data);
   }
 
   if (name === 'listAccounts') {
@@ -275,10 +331,7 @@ export async function callAccount(name, data = {}) {
     }
 
     const snapshot = await getDocs(
-      query(
-        collection(db, 'usuarios'),
-        ...constraints
-      )
+      query(collection(db, 'usuarios'), ...constraints)
     );
 
     const accounts = snapshot.docs
@@ -296,7 +349,10 @@ export async function callAccount(name, data = {}) {
   throw new Error('Operación desconocida.');
 }
 
-// ERRORES
+// ==============================================
+// MENSAJES DE ERROR
+// ==============================================
+
 export function accountError(error) {
   if (error.code?.startsWith('account/')) {
     return error.message;
@@ -319,7 +375,7 @@ export function accountError(error) {
   }
 
   if (error.code === 'auth/operation-not-allowed') {
-    return 'El inicio de sesión no está habilitado.';
+    return 'El acceso con correo y contraseña no está habilitado.';
   }
 
   if (error.code === 'auth/too-many-requests') {
@@ -327,7 +383,7 @@ export function accountError(error) {
   }
 
   if (error.code === 'permission-denied') {
-    return 'No tienes permisos para realizar esta operación.';
+    return 'Firestore rechazó el registro. Revisa las reglas publicadas.';
   }
 
   return 'No se pudo completar la solicitud.';

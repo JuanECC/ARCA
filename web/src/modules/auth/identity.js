@@ -20,22 +20,24 @@ export function usernameFromName(value) {
   return username;
 }
 
-// Correo interno para cuentas ciudadanas nuevas.
+// Correo interno para nuevos registros.
 export function authEmailForName(value) {
   return `${usernameFromName(value)}@usuarios.arca.example.com`;
 }
 
-// Identificar el correo de inicio de sesión.
+// Cuentas de prueba existentes.
+const cuentasExistentes = {
+  admin: 'admin@arca.example.com',
+  agua: 'agua@arca.example.com',
+  'proteccion-civil': 'proteccioncivil@arca.example.com',
+  mantenimiento: 'cuadrilla@arca.example.com',
+  ciudadano: 'ciudadano@arca.example.com',
+};
+
+// Convertir nombre de usuario en correo de Authentication.
 export function loginEmailForUsername(value) {
   const usuario = usernameFromName(value);
 
-  const cuentasInstitucionales = {
-    admin: 'admin@arca.example.com',
-    agua: 'agua@arca.example.com',
-    'proteccion-civil': 'proteccioncivil@arca.example.com',
-    mantenimiento: 'cuadrilla@arca.example.com',
-  };
-
-  return cuentasInstitucionales[usuario]
+  return cuentasExistentes[usuario]
     ?? authEmailForName(usuario);
 }

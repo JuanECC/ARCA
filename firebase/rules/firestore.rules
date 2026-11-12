@@ -1,45 +1,131 @@
+
 rules_version = '2';
+
 service cloud.firestore {
   match /databases/{database}/documents {
+
     function isAdmin() {
-      return request.auth != null && request.auth.uid == 'lJ9W2QteobbETqMoPBonAFfzMgh1';
+      return request.auth != null
+        && request.auth.uid == 'lJ9W2QteobbETqMoPBonAFfzMgh1';
     }
+
     function validProfile(uid) {
-      return request.resource.data.keys().hasOnly(['uid', 'email', 'authEmail', 'nombre', 'usuario', 'role', 'tipo', 'creadoEn', 'operadorUid'])
-        && request.resource.data.keys().hasAll(['uid', 'email', 'authEmail', 'nombre', 'usuario', 'role', 'tipo', 'creadoEn'])
+      return request.resource.data.keys().hasOnly([
+          'uid',
+          'email',
+          'authEmail',
+          'nombre',
+          'usuario',
+          'role',
+          'tipo',
+          'creadoEn',
+          'operadorUid'
+        ])
+        && request.resource.data.keys().hasAll([
+          'uid',
+          'email',
+          'authEmail',
+          'nombre',
+          'usuario',
+          'role',
+          'tipo',
+          'creadoEn'
+        ])
         && request.resource.data.uid == uid
         && request.resource.data.email is string
         && request.resource.data.email.size() <= 254
-        && request.resource.data.email.matches('[^ @]+@[^ @]+[.][^ @]+')
+        && request.resource.data.email.matches(
+          '[^ @]+@[^ @]+[.][^ @]+'
+        )
+        && request.resource.data.authEmail is string
         && request.resource.data.usuario is string
         && request.resource.data.usuario.size() >= 2
         && request.resource.data.usuario.size() <= 64
-        && request.resource.data.usuario.matches('[a-z0-9]+(-[a-z0-9]+)*')
-        && request.resource.data.authEmail == request.resource.data.usuario + '@usuarios.arca.example.com'
+        && request.resource.data.usuario.matches(
+          '[a-z0-9]+(-[a-z0-9]+)*'
+        )
+        && request.resource.data.authEmail ==
+          request.resource.data.usuario +
+          '@usuarios.arca.example.com'
         && request.resource.data.nombre is string
         && request.resource.data.nombre.size() >= 2
         && request.resource.data.nombre.size() <= 100
         && request.resource.data.creadoEn == request.time
-        && (request.resource.data.role != 'maintenance-crew' || request.resource.data.operadorUid == 'WePWGhGitzWeggBe76Z8Av4o3yH3')
-        && ((request.resource.data.role == 'citizen' && request.resource.data.tipo == 'comun')
-          || (request.resource.data.role in ['admin', 'water-operator', 'civil-protection', 'maintenance-crew'] && request.resource.data.tipo == 'fijo'));
+        && (
+          request.resource.data.role != 'maintenance-crew'
+          || request.resource.data.operadorUid ==
+            'WePWGhGitzWeggBe76Z8Av4o3yH3'
+        )
+        && (
+          (
+            request.resource.data.role == 'citizen'
+            && request.resource.data.tipo == 'comun'
+          )
+          || (
+            request.resource.data.role in [
+              'admin',
+              'water-operator',
+              'civil-protection',
+              'maintenance-crew'
+            ]
+            && request.resource.data.tipo == 'fijo'
+          )
+        );
     }
+
     function fixedRole(uid) {
-      return (uid == 'lJ9W2QteobbETqMoPBonAFfzMgh1' && request.resource.data.role == 'admin')
-        || (uid == 'WePWGhGitzWeggBe76Z8Av4o3yH3' && request.resource.data.role == 'water-operator')
-        || (uid == '0MgDjIllJTWIgLPyKCjA7EQNBSw1' && request.resource.data.role == 'civil-protection')
-        || (uid == '6K9PgDGfgrhjn6wWTXQgvMzA8BB2' && request.resource.data.role == 'maintenance-crew');
+      return (
+          uid == 'lJ9W2QteobbETqMoPBonAFfzMgh1'
+          && request.resource.data.role == 'admin'
+        )
+        || (
+          uid == 'WePWGhGitzWeggBe76Z8Av4o3yH3'
+          && request.resource.data.role == 'water-operator'
+        )
+        || (
+          uid == '0MgDjIllJTWIgLPyKCjA7EQNBSw1'
+          && request.resource.data.role == 'civil-protection'
+        )
+        || (
+          uid == '6K9PgDGfgrhjn6wWTXQgvMzA8BB2'
+          && request.resource.data.role == 'maintenance-crew'
+        );
     }
+
     match /usuarios/{uid} {
-      allow get: if request.auth != null && (request.auth.uid == uid || isAdmin());
+
+      // Leer el perfil propio o acceder como administrador.
+      allow get: if request.auth != null
+        && (
+          request.auth.uid == uid
+          || isAdmin()
+        );
+
+      // Solo administración puede listar usuarios.
       allow list: if isAdmin();
-      allow create: if request.auth != null && validProfile(uid)
-        && (isAdmin() || (request.auth.uid == uid
-          && request.resource.data.authEmail == request.auth.token.email
-          && (request.resource.data.role == 'citizen' || fixedRole(uid))));
+
+      // Registro de ciudadanos y altas autorizadas.
+      allow create: if request.auth != null
+        && validProfile(uid)
+        && (
+          isAdmin()
+          || (
+            request.auth.uid == uid
+            && request.resource.data.authEmail ==
+              request.auth.token.email
+            && (
+              request.resource.data.role == 'citizen'
+              || fixedRole(uid)
+            )
+          )
+        );
+
+      // Evitar cambios de roles desde el navegador.
       allow update: if false;
       allow delete: if false;
     }
+
+    // Denegar el acceso al resto de colecciones.
     match /{document=**} {
       allow read, write: if false;
     }
