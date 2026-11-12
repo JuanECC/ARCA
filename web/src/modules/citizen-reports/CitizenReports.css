@@ -1,0 +1,957 @@
+/*
+ * HidroAlerta ARCA · estilos del Dashboard y Mapa de Riesgos.
+ * Todo vive dentro de .ha y las clases empiezan con "ha-": no afecta al resto del proyecto.
+ * Cada color tiene versión clara y oscura; los componentes solo usan estas variables.
+ */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@600;700;800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,400..600,0..1,0&display=block');
+
+/* =========================================================================
+ * 1. TEMA (claro / oscuro)
+ * ========================================================================= */
+
+.ha {
+  --font-text: 'Inter', system-ui, sans-serif;
+  --font-title: 'Plus Jakarta Sans', 'Inter', sans-serif;
+  --radius: 0.75rem;
+  --radius-lg: 1.25rem;
+  --header-h: 4.5rem;
+  --gutter: 1rem;
+}
+
+@media (min-width: 768px) {
+  .ha { --gutter: 2rem; }
+}
+
+.ha[data-theme='light'] {
+  color-scheme: light;
+
+  --bg: #f6f8f9;
+  --surface: #ffffff;
+  --surface-low: #f2f4f5;
+  --surface-high: #e3e7ea;
+  --text: #182024;
+  --text-soft: #43505a;
+  --border: rgba(0, 102, 134, 0.14);
+
+  --primary: #006686;
+  --on-primary: #ffffff;
+  --primary-bg: #c4ebff;
+  --on-primary-bg: #004d66;
+
+  --secondary: #376479;
+  --secondary-bg: #d3eefc;
+  --on-secondary-bg: #1c4c60;
+
+  --tertiary: #724e97;
+  --tertiary-bg: #efdcff;
+  --on-tertiary-bg: #59367d;
+
+  --success: #1d6b4f;
+  --success-bg: #c9f0dc;
+  --on-success-bg: #0b4a33;
+
+  --warning: #8a5300;
+  --warning-bg: #ffe3b0;
+  --on-warning-bg: #5c3700;
+
+  --error: #ba1a1a;
+  --error-bg: #ffdad6;
+  --on-error-bg: #8c0009;
+
+  /* Semáforo: colores de señal para puntos y barras */
+  --risk-low: #1f8a5f;
+  --risk-mid: #d08a00;
+  --risk-high: #d32f2f;
+
+  --glass: rgba(255, 255, 255, 0.82);
+  --shadow: 0 8px 24px -10px rgba(16, 40, 56, 0.22);
+}
+
+.ha[data-theme='dark'] {
+  color-scheme: dark;
+
+  --bg: #0c1113;
+  --surface: #161d20;
+  --surface-low: #1b2327;
+  --surface-high: #2a3439;
+  --text: #e3e9ec;
+  --text-soft: #b9c5cc;
+  --border: rgba(123, 209, 250, 0.14);
+
+  --primary: #7bd1fa;
+  --on-primary: #00344a;
+  --primary-bg: #0b4a63;
+  --on-primary-bg: #c4ebff;
+
+  --secondary: #a0cde5;
+  --secondary-bg: #1c4c60;
+  --on-secondary-bg: #d3eefc;
+
+  --tertiary: #dcb8ff;
+  --tertiary-bg: #4f2f73;
+  --on-tertiary-bg: #f0dbff;
+
+  --success: #7fdcb0;
+  --success-bg: #0f4a35;
+  --on-success-bg: #c9f0dc;
+
+  --warning: #fbc35c;
+  --warning-bg: #4d3300;
+  --on-warning-bg: #ffe3b0;
+
+  --error: #ffb4ab;
+  --error-bg: #7a1414;
+  --on-error-bg: #ffdad6;
+
+  --risk-low: #3fc58c;
+  --risk-mid: #f2b233;
+  --risk-high: #ff6b6b;
+
+  --glass: rgba(22, 29, 32, 0.85);
+  --shadow: 0 8px 24px -10px rgba(0, 0, 0, 0.7);
+}
+
+/* =========================================================================
+ * 2. BASE (solo dentro de .ha)
+ * ========================================================================= */
+
+.ha {
+  min-height: 100vh;
+  font-family: var(--font-text);
+  font-size: 0.875rem;
+  line-height: 1.5;
+  text-align: left;
+  color: var(--text);
+  background: var(--bg);
+  -webkit-font-smoothing: antialiased;
+  transition: background-color 0.25s, color 0.25s;
+}
+
+.ha,
+.ha *,
+.ha *::before,
+.ha *::after {
+  box-sizing: border-box;
+}
+
+.ha h1,
+.ha h3 {
+  margin: 0;
+  font-family: var(--font-title);
+  line-height: 1.2;
+  letter-spacing: -0.01em;
+  color: inherit;
+}
+
+.ha p {
+  margin: 0;
+}
+
+.ha button,
+.ha input {
+  font: inherit;
+  color: inherit;
+}
+
+.ha button {
+  cursor: pointer;
+  background: none;
+  border: 0;
+  border-radius: 0;
+  padding: 0;
+}
+
+.ha :focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+}
+
+.ha .material-symbols-outlined {
+  line-height: 1;
+  user-select: none;
+}
+
+/* Números alineados */
+.ha-num {
+  font-variant-numeric: tabular-nums;
+}
+
+/* Etiqueta pequeña en mayúsculas */
+.ha-label {
+  font-size: 0.6875rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--text-soft);
+}
+
+.ha-soft {
+  color: var(--text-soft);
+}
+
+/*
+ * Tonos: una clase define 4 variables que usan los componentes.
+ * --tone (texto) · --tone-bg (fondo) · --tone-on (texto sobre fondo) · --tone-fill (barras y puntos)
+ */
+.ha-tone-primary { --tone: var(--primary); --tone-bg: var(--primary-bg); --tone-on: var(--on-primary-bg); --tone-fill: var(--primary); }
+.ha-tone-secondary { --tone: var(--secondary); --tone-bg: var(--secondary-bg); --tone-on: var(--on-secondary-bg); --tone-fill: var(--secondary); }
+.ha-tone-tertiary { --tone: var(--tertiary); --tone-bg: var(--tertiary-bg); --tone-on: var(--on-tertiary-bg); --tone-fill: var(--tertiary); }
+.ha-tone-success { --tone: var(--success); --tone-bg: var(--success-bg); --tone-on: var(--on-success-bg); --tone-fill: var(--risk-low); }
+.ha-tone-warning { --tone: var(--warning); --tone-bg: var(--warning-bg); --tone-on: var(--on-warning-bg); --tone-fill: var(--risk-mid); }
+.ha-tone-error { --tone: var(--error); --tone-bg: var(--error-bg); --tone-on: var(--on-error-bg); --tone-fill: var(--risk-high); }
+.ha-tone-neutral { --tone: var(--text-soft); --tone-bg: var(--surface-high); --tone-on: var(--text-soft); --tone-fill: var(--text-soft); }
+
+.ha-text-tone {
+  color: var(--tone);
+}
+
+/* Punto "en vivo" con pulso */
+.ha-live-dot {
+  position: relative;
+  width: 0.5rem;
+  height: 0.5rem;
+  border-radius: 50%;
+  background: var(--tone-fill, var(--primary));
+  flex-shrink: 0;
+}
+
+.ha-live-dot::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: inherit;
+  animation: ha-ping 1.6s infinite;
+}
+
+@keyframes ha-ping {
+  75%,
+  100% {
+    transform: scale(2.4);
+    opacity: 0;
+  }
+}
+
+/* =========================================================================
+ * 3. PIEZAS BÁSICAS: badge, botón, tarjeta
+ * ========================================================================= */
+
+.ha-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  padding: 0.1875rem 0.5rem;
+  border-radius: 0.375rem;
+  font-size: 0.6875rem;
+  font-weight: 600;
+  white-space: nowrap;
+  background: var(--tone-bg);
+  color: var(--tone-on);
+}
+
+.ha .ha-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.5625rem 1rem;
+  border-radius: var(--radius);
+  font-size: 0.8125rem;
+  font-weight: 600;
+  white-space: nowrap;
+  background: var(--primary);
+  color: var(--on-primary);
+  transition: filter 0.2s;
+}
+
+.ha .ha-btn:hover {
+  filter: brightness(1.08);
+}
+
+.ha-card {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  min-width: 0;
+  padding: 1.25rem;
+  border-radius: var(--radius-lg);
+  background: var(--glass);
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow);
+  backdrop-filter: blur(16px);
+}
+
+.ha-card__header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+
+.ha .ha-card__title {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.9375rem;
+}
+
+.ha-card__title .material-symbols-outlined {
+  color: var(--primary);
+}
+
+/* =========================================================================
+ * 4. BARRA SUPERIOR (fija arriba mientras se hace scroll)
+ * ========================================================================= */
+
+.ha-header {
+  position: sticky;
+  top: 0;
+  z-index: 40;
+  height: var(--header-h);
+  padding: 0 var(--gutter);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  background: var(--glass);
+  border-bottom: 1px solid var(--border);
+  backdrop-filter: blur(20px);
+}
+
+.ha-header__brand {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  min-width: 0;
+}
+
+.ha-header__brand svg {
+  flex-shrink: 0;
+}
+
+.ha-header__name {
+  font-family: var(--font-title);
+  font-size: 1.0625rem;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.ha-header__name strong {
+  color: var(--primary);
+}
+
+.ha-header__tagline {
+  font-size: 0.6875rem;
+  color: var(--text-soft);
+}
+
+.ha-header__tools {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.ha-header__weather,
+.ha-header__emergency {
+  display: none;
+  align-items: center;
+  gap: 0.625rem;
+  padding: 0.375rem 0.75rem;
+  border-radius: var(--radius);
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+.ha-header__weather {
+  background: var(--surface-low);
+  border: 1px solid var(--border);
+  color: var(--text-soft);
+}
+
+.ha-header__temp {
+  color: var(--primary);
+}
+
+.ha-header__emergency {
+  gap: 0.25rem;
+  background: var(--error-bg);
+  color: var(--on-error-bg);
+  text-decoration: none;
+}
+
+.ha .ha-header__theme {
+  width: 2.25rem;
+  height: 2.25rem;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background: var(--surface-low);
+  border: 1px solid var(--border);
+  color: var(--text-soft);
+}
+
+.ha .ha-header__theme:hover {
+  color: var(--primary);
+}
+
+/* En pantallas chicas se ocultan el badge, el 911 y el clima para no amontonar */
+.ha-header__brand .ha-badge {
+  display: none;
+}
+
+@media (min-width: 640px) {
+  .ha-header__brand .ha-badge { display: inline-flex; }
+  .ha-header__emergency { display: flex; }
+}
+
+@media (min-width: 900px) {
+  .ha-header__weather { display: flex; }
+}
+
+/* =========================================================================
+ * 5. ESTRUCTURA DE LA PÁGINA
+ * ========================================================================= */
+
+.ha-dashboard {
+  max-width: 1600px;
+  margin: 0 auto;
+  padding: 1.5rem var(--gutter) 2.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.ha-dashboard__intro {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.ha .ha-dashboard__intro h1 {
+  margin: 0.5rem 0 0.25rem;
+  font-size: 1.5rem;
+  font-weight: 800;
+}
+
+.ha-dashboard__intro h1 span {
+  color: var(--primary);
+  font-weight: 500;
+}
+
+@media (min-width: 768px) {
+  .ha .ha-dashboard__intro h1 { font-size: 2rem; }
+}
+
+/* Móvil: una columna · Escritorio: mapa (2/3) + panel lateral (1/3) */
+.ha-dashboard__grid {
+  display: grid;
+  gap: 1.5rem;
+}
+
+@media (min-width: 1100px) {
+  .ha-dashboard__grid {
+    grid-template-columns: 2fr 1fr;
+    align-items: start;
+  }
+}
+
+.ha-dashboard__column {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  min-width: 0;
+}
+
+/* =========================================================================
+ * 6. TARJETAS DE INDICADORES
+ * ========================================================================= */
+
+.ha-kpis {
+  display: grid;
+  gap: 1rem;
+}
+
+@media (min-width: 640px) {
+  .ha-kpis { grid-template-columns: repeat(2, 1fr); }
+}
+
+@media (min-width: 1200px) {
+  .ha-kpis { grid-template-columns: repeat(4, 1fr); }
+}
+
+.ha-kpi {
+  display: flex;
+  flex-direction: column;
+  gap: 0.625rem;
+  padding: 1rem 1.25rem;
+  border-radius: var(--radius-lg);
+  background: var(--glass);
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow);
+  font-size: 0.75rem;
+}
+
+.ha-kpi__head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.ha-kpi__value {
+  font-family: var(--font-title);
+  font-size: 1.625rem;
+  font-weight: 800;
+}
+
+.ha-kpi__value small {
+  font-family: var(--font-text);
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: var(--text-soft);
+}
+
+/* Barra de progreso */
+.ha-kpi__bar {
+  height: 0.375rem;
+  border-radius: 1rem;
+  background: var(--surface-high);
+  overflow: hidden;
+}
+
+.ha-kpi__bar span {
+  display: block;
+  height: 100%;
+  background: var(--tone-fill);
+}
+
+/* Mini gráfica de línea */
+.ha-kpi__line {
+  width: 100%;
+  height: 1.75rem;
+}
+
+.ha-kpi__line path {
+  fill: none;
+  stroke: var(--tone-fill);
+  stroke-width: 2;
+  vector-effect: non-scaling-stroke;
+}
+
+.ha-kpi__tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.375rem;
+}
+
+/* =========================================================================
+ * 7. MAPA DE RIESGOS
+ * ========================================================================= */
+
+/* Botones de capas */
+.ha-map__layers {
+  display: inline-flex;
+  align-self: flex-start;
+  gap: 2px;
+  padding: 3px;
+  border-radius: var(--radius);
+  background: var(--surface-low);
+  border: 1px solid var(--border);
+}
+
+.ha .ha-map__layers button {
+  padding: 0.375rem 0.875rem;
+  border-radius: 0.5rem;
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: var(--text-soft);
+}
+
+.ha .ha-map__layers button.is-active {
+  background: var(--primary-bg);
+  color: var(--on-primary-bg);
+  font-weight: 600;
+}
+
+/* Contenedor del mapa */
+.ha-map {
+  position: relative;
+  height: 26rem;
+  border-radius: var(--radius);
+  overflow: hidden;
+  isolation: isolate;
+}
+
+@media (min-width: 768px) {
+  .ha-map { height: 32rem; }
+}
+
+.ha-map__canvas {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  background: var(--surface-low);
+}
+
+/* Modo oscuro: se invierten los colores del mapa base */
+.ha-map--dark .leaflet-tile-pane {
+  filter: invert(1) hue-rotate(185deg) brightness(0.9) contrast(0.88) saturate(0.6);
+}
+
+/* Puntos del mapa */
+.ha-map__point {
+  fill: var(--tone-fill);
+  fill-opacity: 0.9;
+  stroke: var(--surface);
+  stroke-width: 2.5;
+}
+
+/* Tooltip y controles con colores del tema */
+.ha-map .leaflet-tooltip {
+  background: var(--surface);
+  color: var(--text);
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow);
+  font-family: var(--font-text);
+}
+
+.ha-map .leaflet-tooltip-top::before {
+  border-top-color: var(--surface);
+}
+
+.ha-map .leaflet-bar a {
+  background: var(--surface);
+  color: var(--text);
+}
+
+/* Leyenda flotante */
+.ha-map__legend {
+  position: absolute;
+  z-index: 500;
+  left: 0.75rem;
+  bottom: 0.75rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  padding: 0.75rem;
+  border-radius: var(--radius);
+  background: var(--glass);
+  border: 1px solid var(--border);
+  font-size: 0.6875rem;
+}
+
+.ha-map__legend span {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.ha-map__legend i {
+  width: 0.75rem;
+  height: 0.75rem;
+  border-radius: 50%;
+  background: var(--tone-fill);
+}
+
+/* =========================================================================
+ * 8. EVIDENCIAS CIUDADANAS
+ * ========================================================================= */
+
+.ha-evidence {
+  display: grid;
+  gap: 0.75rem;
+}
+
+@media (min-width: 640px) {
+  .ha-evidence { grid-template-columns: repeat(3, 1fr); }
+}
+
+.ha-evidence__item {
+  border-radius: var(--radius);
+  overflow: hidden;
+  background: var(--surface-low);
+  font-size: 0.75rem;
+}
+
+/* Degradado de respaldo si la foto no carga */
+.ha-evidence__photo {
+  height: 7rem;
+  background-color: var(--surface-high);
+  background-image: linear-gradient(135deg, var(--primary-bg), var(--tertiary-bg));
+  background-size: cover;
+  background-position: center;
+}
+
+.ha-evidence__body {
+  padding: 0.625rem 0.75rem 0.75rem;
+}
+
+.ha .ha-evidence__ai {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  margin-top: 0.25rem;
+  font-size: 0.6875rem;
+  color: var(--primary);
+}
+
+/* =========================================================================
+ * 9. SEMÁFORO POR COLONIA
+ * ========================================================================= */
+
+.ha-search {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0 0.75rem;
+  border-radius: var(--radius);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  color: var(--text-soft);
+}
+
+.ha-search:focus-within {
+  border-color: var(--primary);
+}
+
+.ha .ha-search input {
+  flex: 1;
+  min-width: 0;
+  padding: 0.625rem 0;
+  border: 0;
+  background: transparent;
+  color: var(--text);
+  outline: none;
+}
+
+.ha-search input::placeholder {
+  color: var(--text-soft);
+}
+
+.ha-colonias {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  max-height: 22rem;
+  overflow-y: auto;
+}
+
+.ha .ha-colonia {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 0.125rem;
+  padding: 0.75rem 0.875rem;
+  text-align: left;
+  border-radius: var(--radius);
+  background: var(--surface-low);
+  border-left: 3px solid var(--tone-fill);
+}
+
+.ha .ha-colonia:hover {
+  background: var(--surface-high);
+}
+
+.ha-colonia__head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.8125rem;
+}
+
+.ha-colonia__summary {
+  font-size: 0.75rem;
+  font-weight: 500;
+}
+
+.ha-colonia__advice {
+  font-size: 0.6875rem;
+}
+
+/* =========================================================================
+ * 10. PRONÓSTICO
+ * ========================================================================= */
+
+.ha-forecast {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 0.5rem;
+  height: 9rem;
+  padding: 0.75rem;
+  border-radius: var(--radius);
+  background: var(--surface-low);
+}
+
+.ha-forecast__col {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.375rem;
+}
+
+.ha-forecast__value,
+.ha-forecast__hour {
+  font-size: 0.6875rem;
+  font-weight: 600;
+}
+
+.ha-forecast__track {
+  flex: 1;
+  width: 100%;
+  display: flex;
+  align-items: flex-end;
+}
+
+.ha-forecast__bar {
+  width: 100%;
+  border-radius: 0.375rem 0.375rem 2px 2px;
+  background: var(--tone-fill);
+}
+
+.ha-forecast__tip {
+  padding: 0.875rem;
+  border-radius: var(--radius);
+  background: var(--tertiary-bg);
+  color: var(--on-tertiary-bg);
+  font-size: 0.75rem;
+  line-height: 1.55;
+}
+
+/* =========================================================================
+ * 11. NOTIFICACIONES FLOTANTES (nunca empujan la página)
+ * ========================================================================= */
+
+/* Móvil: arriba, debajo de la barra superior */
+.ha-toasts {
+  position: fixed;
+  z-index: 1000;
+  top: calc(var(--header-h) + 0.5rem);
+  left: var(--gutter);
+  right: var(--gutter);
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  pointer-events: none;
+}
+
+/* Escritorio: esquina inferior derecha */
+@media (min-width: 768px) {
+  .ha-toasts {
+    top: auto;
+    left: auto;
+    bottom: 1.5rem;
+    right: 1.5rem;
+    width: 22rem;
+  }
+}
+
+.ha-toast {
+  pointer-events: auto;
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  padding: 0.75rem 0.75rem 0.75rem 1rem;
+  border-radius: var(--radius);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-left: 3px solid var(--tone-fill);
+  box-shadow: var(--shadow);
+  animation: ha-toast-in 0.25s ease-out;
+}
+
+.ha-toast__text {
+  flex: 1;
+}
+
+.ha-toast__title {
+  font-size: 0.8125rem;
+  font-weight: 600;
+}
+
+.ha-toast__message {
+  font-size: 0.75rem;
+  color: var(--text-soft);
+}
+
+.ha .ha-toast button {
+  color: var(--text-soft);
+}
+
+@keyframes ha-toast-in {
+  from {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+}
+
+/* Extensiones para reportes: conservan el diseño original HidroAlerta */
+.ha-report-fields { display:grid; gap:1rem; }
+.ha-report-fields label { display:grid; gap:.35rem; font-weight:600; }
+.ha-report-fields input, .ha-report-fields select, .ha-report-fields textarea { width:100%; padding:.75rem; border:1px solid var(--border); border-radius:var(--radius); background:var(--surface); color:var(--text); font:inherit; }
+.ha-report-fields input[type=file] { padding:.6rem; }
+.ha-report-location { display:flex; flex-wrap:wrap; align-items:center; gap:.75rem; }
+.ha-report-location-map { display:grid; gap:.5rem; overflow:hidden; border-radius:var(--radius); }
+.ha-report-actions { display:flex; gap:1rem; align-items:center; }
+.ha-report-actions button:disabled, .ha-report-location button:disabled { opacity:.55; cursor:not-allowed; }
+.ha-report-error { padding:1rem; border-radius:var(--radius); background:var(--error-bg); color:var(--on-error-bg); }
+.ha-my-reports { list-style:none; padding:0; margin:0; display:grid; gap:.75rem; max-height:22rem; overflow:auto; }
+.ha-my-reports li { padding:.75rem; background:var(--surface-low); border-radius:var(--radius); display:flex; flex-wrap:wrap; align-items:center; gap:.5rem; }
+.ha-my-reports li p { width:100%; }
+.ha-report-popup { color:#182024; }
+.ha-report-popup p { margin:.35rem 0; }
+
+/* ARCA: mejoras responsive y controles de panel */
+.ha { width:100%; min-width:0; max-width:100%; overflow-x:clip; }
+.ha, .ha * { box-sizing:border-box; }
+.ha-dashboard__grid--wide { grid-template-columns:minmax(0,1fr) !important; }
+.ha-toolbar { display:flex; flex-wrap:wrap; gap:.65rem; margin:0 0 1rem; }
+.ha-toolbar__button { display:inline-flex; align-items:center; gap:.4rem; padding:.65rem .9rem; border:1px solid var(--border); border-radius:var(--radius); background:var(--surface); color:var(--text); cursor:pointer; font:inherit; font-size:.82rem; }
+.ha-toolbar__button:hover { background:var(--surface-high); }
+.ha-alert-center { background:var(--surface); color:var(--text); border:1px solid var(--border); border-radius:var(--radius); padding:1rem; margin-bottom:1rem; }
+.ha-alert-center h3 { margin:0 0 .65rem; }
+.ha-alert-center p { margin:.5rem 0; }
+.ha-layer-count { font-size:.8rem; margin:.5rem 0; }
+.ha .ha-map__layers { display:flex; flex-wrap:wrap; }
+.ha .ha-map__canvas { width:100%; }
+@media(max-width:767px) {
+ .ha { --gutter:.75rem; }
+ .ha .ha-dashboard__intro { flex-wrap:wrap; }
+ .ha .ha-dashboard__intro h1 { overflow-wrap:anywhere; }
+ .ha .ha-dashboard__intro > button { width:100%; justify-content:center; }
+ .ha .ha-map__canvas { min-height:280px; }
+ .ha .ha-report-fields { min-width:0; }
+ .ha .ha-report-fields input, .ha .ha-report-fields textarea, .ha .ha-report-fields select { max-width:100%; }
+ .ha-toolbar__button { flex:1 1 175px; justify-content:center; }
+}
+
+/* Barra superior y vista móvil, sin modificar otras secciones */
+.ha .ha-header__logout { display:inline-flex; align-items:center; justify-content:center; gap:.35rem; padding:.5rem .7rem; border:1px solid var(--border); border-radius:var(--radius); background:var(--surface); color:var(--text); font:inherit; font-weight:600; white-space:nowrap; }
+.ha .ha-header__logout:hover { background:var(--surface-high); }
+.ha .ha-dashboard__grid > * { min-width:0; }
+.ha .ha-toolbar { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); }
+.ha .ha-toolbar__button { min-width:0; justify-content:center; text-align:center; }
+@media(max-width:767px) {
+ .ha .ha-header { height:auto; min-height:64px; padding:.7rem .85rem; gap:.5rem; flex-wrap:wrap; }
+ .ha .ha-header__brand { flex:1 1 170px; }
+ .ha .ha-header__tools { flex:0 1 auto; gap:.4rem; }
+ .ha .ha-header__brand .ha-badge { display:none; }
+ .ha .ha-header__weather { display:none; }
+ .ha .ha-header__logout { padding:.5rem; }
+ .ha .ha-header__logout span { display:none; }
+ .ha .ha-dashboard { padding-left:.85rem; padding-right:.85rem; }
+ .ha .ha-dashboard__grid { display:grid; grid-template-columns:minmax(0,1fr); }
+ .ha .ha-toolbar { grid-template-columns:repeat(2,minmax(0,1fr)); }
+ .ha .ha-toolbar__button { padding:.65rem .4rem; font-size:.75rem; white-space:normal; }
+}
+@media(max-width:390px) {
+ .ha .ha-header__brand { flex:1 1 135px; }
+ .ha .ha-header__name { font-size:.9rem; }
+ .ha .ha-header__tools { gap:.25rem; }
+ .ha .ha-header__emergency { padding:.35rem; }
+}

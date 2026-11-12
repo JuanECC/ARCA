@@ -17,7 +17,7 @@ body {
   font-size: var(--text-md);
   line-height: 1.5;
   color: var(--c-on-surface);
-  background: var(--c-bg);
+  background: va r(--c-bg);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   font-feature-settings: 'cv11', 'ss01';

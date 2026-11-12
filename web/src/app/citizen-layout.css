@@ -1,0 +1,8 @@
+/* Exclusivo para la vista ciudadana: no modifica los otros roles. */
+body.arca-citizen-body { background: #f5f8fa; }
+.page.page--citizen { width:100%; max-width:none; margin:0; padding:0; gap:0; display:block; min-width:0; }
+.page--citizen > .ha { min-height:100dvh; }
+body.arca-citizen-body:has(.ha[data-theme="dark"]) { background:#0b1115; }
+@media(max-width:767px) {
+ .page.page--citizen { padding:0; }
+}

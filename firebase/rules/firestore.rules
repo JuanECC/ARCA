@@ -4,6 +4,10 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
+    // ==========================================
+    // FUNCIONES DE SEGURIDAD
+    // ==========================================
+
     function isAdmin() {
       return request.auth != null
         && request.auth.uid == 'lJ9W2QteobbETqMoPBonAFfzMgh1';
@@ -92,16 +96,20 @@ service cloud.firestore {
         );
     }
 
+    // ==========================================
+    // COLECCIÓN: USUARIOS
+    // ==========================================
+
     match /usuarios/{uid} {
 
-      // Leer el perfil propio o acceder como administrador.
+      // Leer el perfil propio o acceder como admin.
       allow get: if request.auth != null
         && (
           request.auth.uid == uid
           || isAdmin()
         );
 
-      // Solo administración puede listar usuarios.
+      // Solo el administrador puede listar usuarios.
       allow list: if isAdmin();
 
       // Registro de ciudadanos y altas autorizadas.
@@ -120,14 +128,146 @@ service cloud.firestore {
           )
         );
 
-      // Evitar cambios de roles desde el navegador.
+      // No permitir modificaciones de roles.
       allow update: if false;
       allow delete: if false;
     }
 
-    // Denegar el acceso al resto de colecciones.
+    // ==========================================
+    // COLECCIÓN: REPORTES CIUDADANOS
+    // FOTOGRAFÍAS EN BASE64 / FIRESTORE
+    // ==========================================
+
+    match /reportes/{reporteId} {
+
+      // Consultar reportes con sesión iniciada.
+      allow read: if request.auth != null;
+
+      // Crear reportes.
+      allow create: if request.auth != null
+
+        // Campos permitidos.
+        && request.resource.data.keys().hasOnly([
+          'usuarioUid',
+          'titulo',
+          'descripcion',
+          'tipo',
+          'ubicacion',
+          'precisionMetros',
+          'fotoBase64',
+          'estado',
+          'prioridad',
+          'creadoEn'
+        ])
+
+        // Campos obligatorios.
+        && request.resource.data.keys().hasAll([
+          'usuarioUid',
+          'titulo',
+          'descripcion',
+          'tipo',
+          'ubicacion',
+          'precisionMetros',
+          'fotoBase64',
+          'estado',
+          'prioridad',
+          'creadoEn'
+        ])
+
+        // El reporte debe pertenecer al usuario.
+        && request.resource.data.usuarioUid ==
+          request.auth.uid
+
+        // Título.
+        && request.resource.data.titulo is string
+        && request.resource.data.titulo.size() >= 5
+        && request.resource.data.titulo.size() <= 100
+
+        // Descripción.
+        && request.resource.data.descripcion is string
+        && request.resource.data.descripcion.size() >= 10
+        && request.resource.data.descripcion.size() <= 1500
+
+        // Categorías.
+        && request.resource.data.tipo in [
+          'inundacion',
+          'encharcamiento',
+          'fuga',
+          'drenaje',
+          'otro'
+        ]
+
+        // Ubicación.
+        && request.resource.data.ubicacion is map
+        && request.resource.data.ubicacion.keys().hasOnly([
+          'lat',
+          'lng'
+        ])
+        && request.resource.data.ubicacion.keys().hasAll([
+          'lat',
+          'lng'
+        ])
+
+        // Latitud.
+        && request.resource.data.ubicacion.lat is number
+        && request.resource.data.ubicacion.lat >= -90
+        && request.resource.data.ubicacion.lat <= 90
+
+        // Longitud.
+        && request.resource.data.ubicacion.lng is number
+        && request.resource.data.ubicacion.lng >= -180
+        && request.resource.data.ubicacion.lng <= 180
+
+        // Precisión del GPS.
+        && request.resource.data.precisionMetros is number
+        && request.resource.data.precisionMetros >= 0
+
+        // ======================================
+        // VALIDACIÓN DE FOTOGRAFÍA BASE64
+        // ======================================
+
+        // Se permite una fotografía opcional.
+        // Si existe, debe ser WebP en Base64.
+        && (
+          request.resource.data.fotoBase64 == null
+          || (
+            request.resource.data.fotoBase64 is string
+
+            // Máximo 170,000 caracteres.
+            && request.resource.data.fotoBase64.size()
+              <= 170000
+
+            // Formato Data URL WebP.
+            && request.resource.data.fotoBase64.matches(
+              'data:image/webp;base64,[A-Za-z0-9+/=]+'
+            )
+          )
+        )
+
+        // Estado inicial.
+        && request.resource.data.estado == 'pendiente'
+
+        // Prioridad inicial.
+        && request.resource.data.prioridad ==
+          'sin-evaluar'
+
+        // Fecha del servidor.
+        && request.resource.data.creadoEn ==
+          request.time;
+
+      // Evitar modificaciones y eliminaciones
+      // desde el cliente.
+      allow update: if false;
+      allow delete: if false;
+    }
+
+    // ==========================================
+    // SEGURIDAD GENERAL
+    // ==========================================
+
     match /{document=**} {
       allow read, write: if false;
     }
+
   }
 }
