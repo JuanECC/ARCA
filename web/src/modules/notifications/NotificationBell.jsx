@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { auth } from '../auth/firebase';
 import { subscribeNotifications } from './notificationsService';
+import { enablePush, pushAvailable, pushPermission } from './pushService';
 import './NotificationBell.css';
 
 const DAY = 24 * 60 * 60 * 1000;
@@ -51,10 +52,39 @@ export default function NotificationBell({ role, sectorId }) {
   // La lista y los avisos se dibujan en el contenedor del panel (el que tiene data-theme):
   // así heredan sus colores y no quedan atrapados en el encabezado (que usa backdrop-filter).
   const [layer, setLayer] = useState(null);
+  // Avisos en el celular aunque ARCA esté cerrada: no-disponible | default | granted | denied | activando
+  const [push, setPush] = useState('no-disponible');
 
   useEffect(() => {
     setLayer(rootRef.current?.closest('[data-theme]') ?? document.body);
   }, []);
+
+  // Si ya dio permiso, se vuelve a registrar el celular en silencio (mantiene el sector al día)
+  useEffect(() => {
+    if (!uid) return;
+    let alive = true;
+    pushAvailable().then(async (available) => {
+      if (!alive || !available) return;
+      const permission = pushPermission();
+      setPush(permission);
+      if (permission === 'granted') {
+        const result = await enablePush({ sectorId }).catch(() => 'default');
+        if (alive) setPush(result);
+      }
+    });
+    return () => {
+      alive = false;
+    };
+  }, [uid, sectorId]);
+
+  const activatePush = async () => {
+    setPush('activando');
+    const result = await enablePush({ sectorId, ask: true }).catch((error) => {
+      console.error('Notificaciones push:', error);
+      return 'default';
+    });
+    setPush(result);
+  };
 
   useEffect(() => {
     if (!uid) return undefined;
@@ -139,6 +169,22 @@ export default function NotificationBell({ role, sectorId }) {
                     <Icon name="close" />
                   </button>
                 </header>
+
+                {push !== 'no-disponible' && (
+                  <div className={`arca-notif__push arca-notif--${push === 'granted' ? 'success' : push === 'denied' ? 'error' : 'primary'}`}>
+                    <Icon name={push === 'granted' ? 'mobile_friendly' : push === 'denied' ? 'notifications_off' : 'phone_iphone'} />
+                    {push === 'granted' && <span>Avisos activados en este celular, aunque ARCA esté cerrada.</span>}
+                    {push === 'denied' && <span>Las notificaciones están bloqueadas. Actívalas en los ajustes del navegador.</span>}
+                    {(push === 'default' || push === 'activando') && (
+                      <>
+                        <span>Recibe las alertas aunque ARCA esté cerrada.</span>
+                        <button type="button" className="arca-notif__push-btn" onClick={activatePush} disabled={push === 'activando'}>
+                          {push === 'activando' ? 'Activando…' : 'Activar'}
+                        </button>
+                      </>
+                    )}
+                  </div>
+                )}
 
                 {items.length === 0 ? (
                   <p className="arca-notif__empty">

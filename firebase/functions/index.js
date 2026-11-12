@@ -93,3 +93,8 @@ export const loginWithUsername = onCall(options, async ({ data }) => {
 
   return { token: await auth.createCustomToken(profile.uid) };
 });
+
+// Alertas por SMS (textbee), notificaciones push y vigilancia del clima. Ver docs/alertas-sms.md
+export { sendSmsAlert } from './sms.js';
+export { sendPushAlert } from './push.js';
+export { watchWeather } from './weatherWatch.js';

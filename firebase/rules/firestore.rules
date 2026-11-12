@@ -1189,6 +1189,25 @@ service cloud.firestore {
     }
 
     // ==========================================
+    // NOTIFICACIONES PUSH: TOKENS DE CELULARES
+    // ==========================================
+
+    // Cada usuario registra el celular donde inició sesión (el id es el token de FCM,
+    // que solo conoce ese navegador; si otra persona entra en el mismo celular, el token pasa a ella).
+    // Nadie los lee desde la app: solo la función sendPushAlert (Admin SDK).
+    match /pushTokens/{token} {
+      allow create, update: if signedIn()
+        && token.size() <= 1000
+        && request.resource.data.keys().hasOnly(['uid', 'sectorId', 'updatedAt'])
+        && request.resource.data.uid == request.auth.uid
+        && request.resource.data.sectorId is string
+        && request.resource.data.sectorId.size() <= 100
+        && request.resource.data.updatedAt == request.time;
+
+      allow delete: if signedIn() && resource.data.uid == request.auth.uid;
+    }
+
+    // ==========================================
     // SEGURIDAD GENERAL
     // ==========================================
 
