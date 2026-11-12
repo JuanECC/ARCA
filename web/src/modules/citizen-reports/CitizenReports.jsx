@@ -638,6 +638,8 @@ export default function CitizenReports({ onLogout, profile: account }) {
   const [reports, setReports] = useState([]);
   const [civilNotices, setCivilNotices] = useState([]);
   const [civilNoticesError, setCivilNoticesError] = useState('');
+  const [pcNews, setPcNews] = useState([]);
+  const [newsOpen, setNewsOpen] = useState(null);
   const [sectorNames, setSectorNames] = useState({});
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -702,6 +704,15 @@ export default function CitizenReports({ onLogout, profile: account }) {
       setCivilNoticesError('');
     }, err => setCivilNoticesError(`No se pudieron consultar las alertas oficiales: ${err.message}`));
   }, []);
+  // Noticias e información publicadas por Protección Civil (colección propia, solo lectura).
+  useEffect(() => {
+    if (!auth?.app) return;
+    const db = getFirestore(auth.app);
+    return onSnapshot(collection(db, 'pcNews'), snapshot => {
+      setPcNews(snapshot.docs.map(item => ({ id: item.id, ...item.data() }))
+        .sort((a, b) => (b.creadoEn?.seconds || 0) - (a.creadoEn?.seconds || 0)));
+    }, err => console.warn('No se pudieron consultar las noticias de Protección Civil:', err));
+  }, []);
   // Sectores públicos activos: traduce los IDs de Firestore a nombres visibles.
   useEffect(() => {
     if (!auth?.app) return;
@@ -755,6 +766,29 @@ export default function CitizenReports({ onLogout, profile: account }) {
         </div>
       </section>}
       {civilNoticesError && <p className="ha-report-error" role="alert">{civilNoticesError}</p>}
+      {pcNews.length > 0 && <section className="ha-pc-news" aria-labelledby="ha-pc-news-title">
+        <div className="ha-pc-news__head">
+          <div><h2 id="ha-pc-news-title"><Icon name="newspaper" size={20}/> Noticias e información</h2><span>Publicadas por el Departamento de Protección Civil</span></div>
+          <span className="ha-pc-news__count">{pcNews.length} publicación(es)</span>
+        </div>
+        <div className="ha-pc-news__list">
+          {pcNews.slice(0, 6).map(n => {
+            const expanded = newsOpen === n.id;
+            return <article key={n.id} className="ha-pc-news__item">
+              {n.images?.length > 0 && <div className={`ha-pc-news__images ha-pc-news__images--${Math.min(n.images.length, 2)}`}>
+                {n.images.slice(0, 2).map((src, i) => <img key={i} src={src} alt={`Imagen ${i + 1} de ${n.title}`} loading="lazy"/>)}
+              </div>}
+              <div className="ha-pc-news__body">
+                <span className="ha-pc-news__tag"><Icon name="shield" size={14}/> Protección Civil</span>
+                <strong>{n.title}</strong>
+                <p className={expanded ? '' : 'ha-pc-news__text--clamp'}>{n.body}</p>
+                {String(n.body || '').length > 180 && <button type="button" className="ha-pc-news__more" onClick={() => setNewsOpen(expanded ? null : n.id)}>{expanded ? 'Ver menos' : 'Leer más'}</button>}
+                <small>{n.creadoEn?.toDate?.().toLocaleString('es-MX', { dateStyle: 'medium', timeStyle: 'short' }) || 'Reciente'}</small>
+              </div>
+            </article>;
+          })}
+        </div>
+      </section>}
       {formOpen && profileComplete && <ReportForm onClose={() => setFormOpen(false)} onCreated={() => setFormOpen(false)} notify={notify}/>}
       {loading && <p className="ha-soft">Cargando reportes...</p>}
       {error && <p role="alert" className="ha-report-error">{error}</p>}

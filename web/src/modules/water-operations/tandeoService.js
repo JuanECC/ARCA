@@ -20,6 +20,7 @@ const collections = {
   reports: 'systemReports',
   notices: 'notices',
   status: 'sectorStatus',
+  generated: 'generatedReports',
 };
 
 const asArray = (snap) =>
@@ -342,4 +343,27 @@ export async function publishRiskFromReport() {
   throw Error(
     'Las alertas de Protección Civil se publican exclusivamente desde su panel.'
   );
+}
+
+// ==========================================
+// REPORTES GENERADOS (Estadísticas)
+// Cada reporte se guarda como un documento estructurado
+// (metadatos, indicadores y tablas), sin archivos.
+// ==========================================
+
+export const watchGeneratedReports = (cb, err) => watch('generated', cb, err);
+
+export async function saveGeneratedReport(report) {
+  const user = requireUser();
+  const ref = await addDoc(collection(db, collections.generated), {
+    ...report,
+    createdBy: user.uid,
+    creadoEn: serverTimestamp(),
+  });
+  return ref.id;
+}
+
+export async function deleteGeneratedReport(id) {
+  requireUser();
+  await deleteDoc(doc(db, collections.generated, id));
 }

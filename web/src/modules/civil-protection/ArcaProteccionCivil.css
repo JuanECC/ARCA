@@ -143,8 +143,10 @@
 
 .arca-pc h1,
 .arca-pc h2,
-.arca-pc h3 {
+.arca-pc h3,
+.arca-pc h4 {
   margin: 0;
+  color: inherit; /* toma el color del tema del panel, no el global de base.css */
   font-family: var(--font-title);
   line-height: 1.2;
   letter-spacing: -0.01em;
@@ -1475,4 +1477,251 @@
   stroke: #168956 !important;
   fill-opacity: .08 !important;
   animation: none !important;
+}
+
+/* ---------- Acciones de la consola ---------- */
+.arca-pc .console__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+/* ---------- Selector de zona (lista de sectores con buscador) ---------- */
+.arca-pc .zone-picker {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 0.375rem;
+}
+
+.arca-pc .zone-picker__toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  min-width: 13rem;
+  padding: 0.4375rem 0.75rem;
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+  background: var(--surface-low);
+  color: var(--text);
+  text-align: left;
+}
+
+.arca-pc .zone-picker__toggle:hover,
+.arca-pc .zone-picker__toggle[aria-expanded="true"] {
+  border-color: var(--primary);
+}
+
+.arca-pc .zone-picker__toggle > .material-symbols-outlined:first-child {
+  color: var(--primary);
+}
+
+.arca-pc .zone-picker__label {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  line-height: 1.15;
+}
+
+.arca-pc .zone-picker__label small {
+  font-size: 0.6875rem;
+  color: var(--text-soft);
+}
+
+.arca-pc .zone-picker__label strong {
+  font-size: 0.8125rem;
+  font-weight: 600;
+}
+
+.arca-pc .zone-picker__clear {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.4375rem 0.625rem;
+  border-radius: var(--radius);
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--text-soft);
+}
+
+.arca-pc .zone-picker__clear:hover {
+  background: var(--surface-low);
+  color: var(--text);
+}
+
+.arca-pc .zone-picker__menu {
+  position: absolute;
+  top: calc(100% + 0.375rem);
+  left: 0;
+  z-index: 1200;
+  width: min(20rem, calc(100vw - 2rem));
+  padding: 0.5rem;
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--border);
+  background: var(--surface);
+  box-shadow: var(--shadow);
+}
+
+.arca-pc .zone-picker__search {
+  display: flex;
+  align-items: center;
+  gap: 0.375rem;
+  padding: 0.375rem 0.625rem;
+  margin-bottom: 0.375rem;
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+  background: var(--surface-low);
+  color: var(--text-soft);
+}
+
+.arca-pc .zone-picker__search input {
+  flex: 1;
+  min-width: 0;
+  border: 0;
+  outline: 0;
+  background: transparent;
+  color: var(--text);
+  font-size: 0.8125rem;
+}
+
+.arca-pc .zone-picker__menu ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  max-height: 16rem;
+  overflow-y: auto;
+}
+
+.arca-pc .zone-picker__menu li button {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  width: 100%;
+  padding: 0.5rem 0.625rem;
+  border-radius: 0.5rem;
+  font-size: 0.8125rem;
+  color: var(--text);
+  text-align: left;
+}
+
+.arca-pc .zone-picker__menu li button:hover {
+  background: var(--surface-low);
+}
+
+.arca-pc .zone-picker__menu li button.is-active {
+  background: var(--surface-high);
+  font-weight: 600;
+}
+
+.arca-pc .zone-picker__menu li button .material-symbols-outlined {
+  color: var(--primary);
+}
+
+.arca-pc .zone-picker__name {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+}
+
+.arca-pc .zone-picker__name small {
+  font-size: 0.6875rem;
+  font-weight: 400;
+  color: var(--text-soft);
+}
+
+.arca-pc .zone-picker__count {
+  min-width: 1.5rem;
+  padding: 0.0625rem 0.4375rem;
+  border-radius: 1rem;
+  background: var(--surface-low);
+  font-size: 0.75rem;
+  text-align: center;
+  color: var(--text-soft);
+}
+
+.arca-pc .zone-picker__empty,
+.arca-pc .zone-picker__hint {
+  padding: 0.5rem 0.625rem;
+  font-size: 0.75rem;
+  color: var(--text-soft);
+}
+
+.arca-pc .zone-picker__hint {
+  margin: 0.25rem 0 0;
+  border-top: 1px solid var(--border);
+}
+
+/* ---------- Noticias de Protección Civil ---------- */
+.arca-pc .news-count {
+  align-self: flex-end;
+  font-size: 0.6875rem;
+  color: var(--text-soft);
+}
+
+.arca-pc .news-published {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin-top: 1.25rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--border);
+}
+
+.arca-pc .news-published h4 {
+  color: var(--text);
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.875rem;
+}
+
+.arca-pc .news-published h4 span {
+  padding: 0.0625rem 0.5rem;
+  border-radius: 1rem;
+  background: var(--surface-low);
+  font-size: 0.75rem;
+  color: var(--text-soft);
+}
+
+.arca-pc .news-published__item {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.5rem;
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+  background: var(--surface-low);
+}
+
+.arca-pc .news-published__item img,
+.arca-pc .news-published__noimg {
+  flex: none;
+  width: 3.25rem;
+  height: 3.25rem;
+  border-radius: 0.5rem;
+  object-fit: cover;
+}
+
+.arca-pc .news-published__noimg {
+  display: grid;
+  place-items: center;
+  background: var(--surface-high);
+  color: var(--text-soft);
+}
+
+.arca-pc .news-published__item > div {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-width: 0;
+}
+
+.arca-pc .news-published__item strong {
+  font-size: 0.8125rem;
+  overflow-wrap: anywhere;
+}
+
+.arca-pc .news-published__item small {
+  font-size: 0.75rem;
+  color: var(--text-soft);
 }

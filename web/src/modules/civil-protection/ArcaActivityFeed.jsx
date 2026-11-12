@@ -18,7 +18,7 @@ const dateLabel = (value) => value instanceof Date && !Number.isNaN(value.getTim
   ? value.toLocaleString('es-MX', { dateStyle: 'medium', timeStyle: 'short' })
   : 'Fecha no disponible';
 
-export default function ArcaActivityFeed({ items, sectors, loading, error, onFocus }) {
+export default function ArcaActivityFeed({ items, zoneName, sectors, loading, error, onFocus }) {
   const [filter, setFilter] = useState('todos');
   const [expanded, setExpanded] = useState(null);
   const visible = useMemo(() => items.filter((item) => filter === 'todos' || item.origin === filter), [items, filter]);
@@ -30,7 +30,9 @@ export default function ArcaActivityFeed({ items, sectors, loading, error, onFoc
         <div>
           <span className="pc-feed__eyebrow">Monitoreo compartido · Firestore</span>
           <h2 id="pc-feed-title">Actividad y alertas de ARCA</h2>
-          <p>Reportes ciudadanos, incidencias institucionales y avisos publicados en tiempo real.</p>
+          <p>{zoneName
+            ? <>Mostrando solo la actividad de <strong>{zoneName}</strong>. Elige «Todas las zonas» para ver todo.</>
+            : 'Reportes ciudadanos, incidencias institucionales y avisos publicados en tiempo real.'}</p>
         </div>
         <span className="pc-feed__total" aria-label={`${items.length} registros`}>{items.length} registros</span>
       </div>
@@ -44,7 +46,7 @@ export default function ArcaActivityFeed({ items, sectors, loading, error, onFoc
       </div>
       {loading && <p className="pc-feed__message" role="status">Sincronizando registros con Firebase…</p>}
       {error && <p className="pc-feed__message pc-feed__message--error" role="alert">Error al cargar datos: {error}</p>}
-      {!loading && !error && visible.length === 0 && <p className="pc-feed__message">No hay registros para este filtro. Comprueba que se hayan publicado en Firestore.</p>}
+      {!loading && !error && visible.length === 0 && <p className="pc-feed__message">{zoneName ? `No hay registros de ${zoneName} para este filtro.` : 'No hay registros para este filtro. Comprueba que se hayan publicado en Firestore.'}</p>}
       <div className="pc-feed__list">
         {visible.map((item) => {
           const open = expanded === item.key;

@@ -1189,6 +1189,122 @@ service cloud.firestore {
     }
 
     // ==========================================
+    // COLECCIÓN: PCNEWS
+    // NOTICIAS E INFORMACIÓN DE PROTECCIÓN CIVIL
+    // ==========================================
+
+    function validNewsImage(image) {
+      return image is string && image.size() <= 170000
+        && image.matches('data:image/webp;base64,[A-Za-z0-9+/=]+');
+    }
+
+    match /pcNews/{id} {
+
+      // Toda persona con sesión (ciudadanía incluida) puede leerlas.
+      allow read: if signedIn();
+
+      // Solo Protección Civil publica: título, descripción y 0 a 2 imágenes.
+      allow create: if isCivilProtection()
+
+        && request.resource.data.keys().hasOnly([
+          'title', 'body', 'images', 'author', 'createdBy', 'creadoEn'
+        ])
+
+        && request.resource.data.keys().hasAll([
+          'title', 'body', 'images', 'author', 'createdBy', 'creadoEn'
+        ])
+
+        && request.resource.data.title is string
+        && request.resource.data.title.size() >= 5
+        && request.resource.data.title.size() <= 120
+        && request.resource.data.body is string
+        && request.resource.data.body.size() >= 10
+        && request.resource.data.body.size() <= 1500
+        && request.resource.data.images is list
+        && request.resource.data.images.size() <= 2
+        && (request.resource.data.images.size() < 1
+          || validNewsImage(request.resource.data.images[0]))
+        && (request.resource.data.images.size() < 2
+          || validNewsImage(request.resource.data.images[1]))
+        && request.resource.data.author == 'Protección Civil'
+        && request.resource.data.createdBy == request.auth.uid
+        && request.resource.data.creadoEn == request.time;
+
+      // Una noticia publicada no se edita; se elimina y se publica otra.
+      allow update: if false;
+
+      allow delete: if isCivilProtection();
+    }
+
+    // ==========================================
+    // COLECCIÓN: GENERATEDREPORTS
+    // REPORTES ESTRUCTURADOS GENERADOS DESDE ESTADÍSTICAS
+    // ==========================================
+
+    match /generatedReports/{id} {
+
+      // Operaciones consulta los reportes guardados.
+      allow read: if isWaterOperator();
+
+      // Reporte con metadatos, indicadores y tablas.
+      allow create: if isWaterOperator()
+
+        && request.resource.data.keys().hasOnly([
+          'folio', 'titulo', 'metodo', 'modelo', 'errorIA',
+          'generadoPor', 'periodo', 'registros', 'indicadores',
+          'nivelAlerta', 'resumen', 'sectores', 'prioridades',
+          'recomendaciones', 'incidencias', 'avisos',
+          'createdBy', 'creadoEn'
+        ])
+
+        && request.resource.data.keys().hasAll([
+          'folio', 'titulo', 'metodo', 'modelo', 'errorIA',
+          'generadoPor', 'periodo', 'registros', 'indicadores',
+          'nivelAlerta', 'resumen', 'sectores', 'prioridades',
+          'recomendaciones', 'incidencias', 'avisos',
+          'createdBy', 'creadoEn'
+        ])
+
+        && request.resource.data.folio is string
+        && request.resource.data.folio.matches('^ARCA-OP-[0-9]{12}$')
+        && request.resource.data.titulo is string
+        && request.resource.data.titulo.size() > 0
+        && request.resource.data.titulo.size() <= 200
+        && request.resource.data.metodo in ['ia', 'calculo']
+        && request.resource.data.modelo is string
+        && request.resource.data.modelo.size() <= 60
+        && request.resource.data.errorIA is string
+        && request.resource.data.errorIA.size() <= 200
+        && request.resource.data.generadoPor is string
+        && request.resource.data.generadoPor.size() <= 80
+        && request.resource.data.periodo is map
+        && request.resource.data.registros is map
+        && request.resource.data.indicadores is map
+        && request.resource.data.nivelAlerta in [
+          '', 'Bajo', 'Medio', 'Alto', 'Crítico'
+        ]
+        && request.resource.data.resumen is string
+        && request.resource.data.resumen.size() <= 2000
+        && request.resource.data.sectores is list
+        && request.resource.data.sectores.size() <= 100
+        && request.resource.data.prioridades is list
+        && request.resource.data.prioridades.size() <= 50
+        && request.resource.data.recomendaciones is list
+        && request.resource.data.recomendaciones.size() <= 10
+        && request.resource.data.incidencias is list
+        && request.resource.data.incidencias.size() <= 300
+        && request.resource.data.avisos is list
+        && request.resource.data.avisos.size() <= 100
+        && request.resource.data.createdBy == request.auth.uid
+        && request.resource.data.creadoEn == request.time;
+
+      // Un reporte guardado no se modifica.
+      allow update: if false;
+
+      allow delete: if isWaterOperator();
+    }
+
+    // ==========================================
     // SEGURIDAD GENERAL
     // ==========================================
 

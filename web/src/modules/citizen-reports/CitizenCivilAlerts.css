@@ -28,3 +28,24 @@
 .ha .ha-civil-alert--controlled { border-left-color: #168956; border-color: rgba(22,137,86,.3); }
 .ha .ha-civil-alert--controlled .ha-civil-alert__heading span { background: rgba(22,137,86,.12); color: #127548; }
 @media (prefers-reduced-motion: reduce) { .ha .leaflet-overlay-pane path.ha-pc-marker--active { animation: none !important; } }
+
+/* Noticias e información de Protección Civil */
+.ha .ha-pc-news { margin: 0 0 1.25rem; border: 1px solid var(--border, rgba(0,102,134,.14)); border-radius: 16px; padding: 1rem; background: var(--surface, #fff); color: var(--text, #1c2730); box-shadow: 0 4px 18px rgba(0,30,48,.06); min-width: 0; }
+.ha .ha-pc-news__head { display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:.6rem 1rem; margin-bottom:.85rem; }
+.ha .ha-pc-news__head > div { display:flex; flex-direction:column; gap:.15rem; }
+.ha .ha-pc-news__head h2 { color: inherit; display:flex; align-items:center; gap:.4rem; font-size:1rem; margin:0; }
+.ha .ha-pc-news__head span, .ha .ha-pc-news__item small { font-size:.76rem; color: var(--text-soft, #667b87); }
+.ha .ha-pc-news__count { border-radius:999px; padding:.3rem .65rem; background: var(--surface-low, #f2f4f5); font-weight:600; }
+.ha .ha-pc-news__list { display:grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 280px), 1fr)); gap:.8rem; }
+.ha .ha-pc-news__item { display:flex; flex-direction:column; border:1px solid var(--border, rgba(0,102,134,.14)); border-radius:12px; overflow:hidden; background: var(--surface-low, #f7f9fb); min-width:0; }
+.ha .ha-pc-news__images { display:grid; gap:2px; background: var(--border, #dde3e6); }
+.ha .ha-pc-news__images--2 { grid-template-columns: 1fr 1fr; }
+.ha .ha-pc-news__images img { width:100%; height:150px; object-fit:cover; display:block; }
+.ha .ha-pc-news__body { display:flex; flex-direction:column; gap:.4rem; padding:.85rem 1rem; }
+.ha .ha-pc-news__tag { align-self:flex-start; display:inline-flex; align-items:center; gap:.25rem; border-radius:999px; padding:.18rem .55rem; background:rgba(219,49,53,.1); color:#b52332; font-size:.7rem; font-weight:700; letter-spacing:.02em; }
+.ha .ha-pc-news__body strong { font-size:.95rem; overflow-wrap:anywhere; }
+.ha .ha-pc-news__body p { margin:0; line-height:1.5; overflow-wrap:anywhere; white-space:pre-line; }
+.ha .ha-pc-news__text--clamp { display:-webkit-box; -webkit-line-clamp:3; -webkit-box-orient:vertical; overflow:hidden; }
+.ha .ha-pc-news__more { align-self:flex-start; padding:0; border:0; background:none; color: var(--primary, #006686); font-size:.8rem; font-weight:600; cursor:pointer; }
+.ha[data-theme="dark"] .ha-pc-news__tag { color:#ffaaa9; background:rgba(255,120,120,.14); }
+@media (max-width: 640px) { .ha .ha-pc-news { padding:.8rem; } }

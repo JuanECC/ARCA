@@ -14,7 +14,7 @@
  *   y "Publicar a la ciudadanía" guarda una noticia (notices) con la forma que leerá la app ciudadana.
  * Radio de peligro: IMPACT_RADIUS_M (50 m) en la sección "OPCIONES FIJAS".
  */
-import { createContext, useContext, useEffect, useState } from 'react';
+import { createContext, useContext, useEffect, useRef, useState } from 'react';
 import { Circle, CircleMarker, MapContainer, TileLayer, Tooltip, useMap, useMapEvents } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
 import './ArcaProteccionCivil.css';
@@ -176,6 +176,7 @@ import {
   watchPcSectors, watchPcAlerts, watchPcUnits,
   savePcAlert, removePcAlert, publishPcAlert, controlPcAlert, syncPcControlledNotice, withdrawPcPublication,
   savePcUnit, removePcUnit,
+  watchPcNews, publishPcNews, removePcNews, MAX_NEWS_IMAGES,
 } from './proteccionCivilService';
 
 /* ======================================================================
@@ -467,11 +468,11 @@ function PointPicker({ position, onChange }) {
 const MAX_PHOTOS = 1;
 
 // Selector de fotos de evidencia (mínimo 1, máximo 3).
-function PhotoPicker({ photos, onChange }) {
+function PhotoPicker({ photos, onChange, max = MAX_PHOTOS }) {
   const [loading, setLoading] = useState(false);
 
   const add = async (e) => {
-    const files = [...e.target.files].slice(0, MAX_PHOTOS - photos.length);
+    const files = [...e.target.files].slice(0, max - photos.length);
     e.target.value = '';
     if (!files.length) return;
     setLoading(true);
@@ -494,7 +495,7 @@ function PhotoPicker({ photos, onChange }) {
         </div>
       ))}
 
-      {photos.length < MAX_PHOTOS && (
+      {photos.length < max && (
         <label className="photos-pick__add">
           <Icon name={loading ? 'hourglass_top' : 'add_a_photo'} />
           <span>{loading ? 'Cargando…' : 'Agregar foto'}</span>
@@ -1203,6 +1204,160 @@ function UnitsPanel({ units, sectors, onChange }) {
 /* ======================================================================
  * CONSOLA
  * ====================================================================== */
+// --- modules/proteccion-civil/ZonePicker.jsx
+// Selector de zona: botón que despliega la lista de sectores con buscador.
+// Escala a muchos sectores sin llenar la barra de pestañas.
+function ZonePicker({ zone, sectors, alerts, onChange }) {
+  const [open, setOpen] = useState(false);
+  const [search, setSearch] = useState('');
+  const ref = useRef(null);
+
+  useEffect(() => {
+    if (!open) return undefined;
+    const onDown = (e) => { if (!ref.current?.contains(e.target)) setOpen(false); };
+    const onKey = (e) => { if (e.key === 'Escape') setOpen(false); };
+    document.addEventListener('mousedown', onDown);
+    document.addEventListener('keydown', onKey);
+    return () => {
+      document.removeEventListener('mousedown', onDown);
+      document.removeEventListener('keydown', onKey);
+    };
+  }, [open]);
+
+  const current = sectors.find((s) => s.id === zone);
+  const activeIn = (id) => alerts.filter((a) => (id === 'todas' || a.sectorId === id) && alertState(a) !== 'controlada').length;
+  const term = search.trim().toLowerCase();
+  const list = sectors
+    .filter((s) => String(s.name || '').toLowerCase().includes(term))
+    .sort((a, b) => String(a.name || '').localeCompare(String(b.name || ''), 'es', { numeric: true }));
+  const pick = (id) => { onChange(id); setOpen(false); setSearch(''); };
+  const option = (id, name, note) => (
+    <li key={id}>
+      <button type="button" role="option" aria-selected={zone === id} className={zone === id ? 'is-active' : ''} onClick={() => pick(id)}>
+        <span className="zone-picker__name">{name}{note && <small>{note}</small>}</span>
+        <span className="zone-picker__count" title="Alertas activas">{activeIn(id)}</span>
+        {zone === id && <Icon name="check" size={18} />}
+      </button>
+    </li>
+  );
+
+  return (
+    <div className="zone-picker" ref={ref}>
+      <button type="button" className="zone-picker__toggle" aria-haspopup="listbox" aria-expanded={open} onClick={() => setOpen(!open)}>
+        <Icon name="location_on" size={18} />
+        <span className="zone-picker__label"><small>Zona</small><strong>{current?.name ?? 'Todas las zonas'}</strong></span>
+        <Icon name={open ? 'expand_less' : 'expand_more'} size={18} />
+      </button>
+      {zone !== 'todas' && (
+        <button type="button" className="zone-picker__clear" onClick={() => pick('todas')} title="Mostrar todas las zonas">
+          <Icon name="close" size={16} /> Todas
+        </button>
+      )}
+      {open && (
+        <div className="zone-picker__menu">
+          <label className="zone-picker__search">
+            <Icon name="search" size={18} />
+            <input autoFocus value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Buscar sector…" aria-label="Buscar sector" />
+          </label>
+          <ul role="listbox" aria-label="Sectores">
+            {!term && option('todas', 'Todas las zonas')}
+            {list.map((s) => option(s.id, s.name, s.active === false ? 'Inactivo' : ''))}
+            {!list.length && <li className="zone-picker__empty">No hay sectores con ese nombre.</li>}
+          </ul>
+          <p className="zone-picker__hint">{sectors.length} sectores · el número indica alertas activas</p>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// --- modules/proteccion-civil/NewsModal.jsx
+// Noticias e información de Protección Civil para la ciudadanía (1 o 2 imágenes y descripción).
+function NewsModal({ news, onClose }) {
+  const { notify } = useToast();
+  const empty = { title: '', body: '', images: [] };
+  const [form, setForm] = useState(empty);
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState('');
+  const set = (key) => (e) => { setForm({ ...form, [key]: e.target.value }); setError(''); };
+
+  const submit = async (e) => {
+    e.preventDefault();
+    setSaving(true);
+    try {
+      await publishPcNews(form);
+      notify({ title: 'Noticia publicada', message: 'Ya es visible para la ciudadanía.', tone: 'success', icon: 'newspaper' });
+      setForm(empty);
+    } catch (failure) {
+      setError(failure.message);
+    }
+    setSaving(false);
+  };
+
+  const remove = async (item) => {
+    if (!window.confirm(`¿Eliminar la noticia «${item.title}»? Dejará de verse para la ciudadanía.`)) return;
+    try {
+      await removePcNews(item.id);
+      notify({ title: 'Noticia eliminada', message: item.title, tone: 'neutral', icon: 'delete' });
+    } catch (failure) {
+      notify({ title: 'No se eliminó la noticia', message: failure.message, tone: 'error', icon: 'error' });
+    }
+  };
+
+  return (
+    <Modal
+      title="Agregar noticia o información"
+      onClose={onClose}
+      footer={
+        <>
+          <Button variant="ghost" onClick={onClose}>Cerrar</Button>
+          <Button variant="primary" icon="send" type="submit" form="news-form" disabled={saving}>
+            {saving ? 'Publicando…' : 'Publicar noticia'}
+          </Button>
+        </>
+      }
+    >
+      <form id="news-form" className="modal__body-form" onSubmit={submit}>
+        <p className="alert-intro">
+          <Icon name="newspaper" size={18} />
+          <span>Se publica para toda la ciudadanía en su panel, con la etiqueta <strong>Protección Civil</strong>.</span>
+        </p>
+        <label className="field">
+          Título
+          <input className="input" required minLength={5} maxLength={120} value={form.title} onChange={set('title')} placeholder="Ej. Recomendaciones ante la temporada de lluvias" />
+        </label>
+        <label className="field">
+          Descripción
+          <textarea className="input" required minLength={10} maxLength={1500} value={form.body} onChange={set('body')} placeholder="Información que la ciudadanía debe conocer." />
+          <small className="news-count">{form.body.length}/1500</small>
+        </label>
+        <div className="field">
+          Imágenes (opcional, hasta {MAX_NEWS_IMAGES})
+          <PhotoPicker max={MAX_NEWS_IMAGES} photos={form.images} onChange={(images) => { setForm({ ...form, images }); setError(''); }} />
+        </div>
+        {error && <p className="alert-error" role="alert">{error}</p>}
+      </form>
+
+      <section className="news-published" aria-label="Noticias publicadas">
+        <h4>Noticias publicadas <span>{news.length}</span></h4>
+        {news.length === 0 && <p className="soft">Aún no hay noticias publicadas.</p>}
+        {news.map((item) => (
+          <article key={item.id} className="news-published__item">
+            {item.images?.[0] ? <img src={item.images[0]} alt="" /> : <span className="news-published__noimg"><Icon name="newspaper" /></span>}
+            <div>
+              <strong>{item.title}</strong>
+              <small>{timeAgo(item.createdAt)} · {item.images?.length || 0} imagen(es)</small>
+            </div>
+            <button type="button" className="btn btn--ghost" onClick={() => remove(item)} aria-label={`Eliminar ${item.title}`}>
+              <Icon name="delete" size={18} />
+            </button>
+          </article>
+        ))}
+      </section>
+    </Modal>
+  );
+}
+
 // --- modules/proteccion-civil/ConsolePage.jsx
 /*
  * Consola táctica de Protección Civil.
@@ -1219,6 +1374,8 @@ function ConsolePage() {
   const [activityLoading, setActivityLoading] = useState(true);
   const [activityError, setActivityError] = useState('');
   const [externalFocus, setExternalFocus] = useState(null);
+  const [news, setNews] = useState([]);
+  const [newsOpen, setNewsOpen] = useState(false);
 
   useEffect(() => {
     const reportError = (error) => notify({
@@ -1228,11 +1385,12 @@ function ConsolePage() {
     const offSectors = watchPcSectors(setSectors, reportError);
     const offAlerts = watchPcAlerts((items) => { setAlerts(items); setLoading(false); }, reportError);
     const offUnits = watchPcUnits(setUnits, reportError);
+    const offNews = watchPcNews(setNews, reportError);
     const offActivity = watchArcaActivity(
       (items, done) => { setAllActivity(items); if (done) setActivityLoading(false); },
       (failure, name) => { setActivityError(`Colección ${name}: ${failure.message}`); setActivityLoading(false); }
     );
-    return () => { offSectors(); offAlerts(); offUnits(); offActivity(); };
+    return () => { offSectors(); offAlerts(); offUnits(); offActivity(); offNews(); };
   }, []);
   const [zone, setZone] = useState('todas');
   const [selectedId, setSelectedId] = useState(() => alerts.find((a) => !a.closure)?.id ?? null);
@@ -1242,7 +1400,8 @@ function ConsolePage() {
   const active = inZone.filter((a) => alertState(a) !== 'controlada');
   const critical = active.filter((a) => a.level === 'critico').length;
   const onDuty = units.filter((u) => u.status !== 'fuera').length;
-  const selected = externalFocus ? null : (alerts.find((a) => a.id === selectedId) ?? alerts[0] ?? null);
+  const selected = externalFocus ? null : (inZone.find((a) => a.id === selectedId) ?? inZone[0] ?? null);
+  const zoneActivity = allActivity.filter((item) => zone === 'todas' || item.sectorId === zone);
 
   const saveAlert = async (alert) => {
     try {
@@ -1266,20 +1425,19 @@ function ConsolePage() {
           <h1>Consola táctica</h1>
           <p className="soft">Riesgos para la población detectados por las guardias de Protección Civil.</p>
         </div>
-        <Button variant="alert" icon="add_alert" disabled={!sectors.some((sector) => sector.active !== false)} onClick={() => setEditing({})}>
-          Nueva alerta de riesgo
-        </Button>
+        <div className="console__actions">
+          <Button variant="secondary" icon="newspaper" onClick={() => setNewsOpen(true)}>
+            Agregar noticia o información
+          </Button>
+          <Button variant="alert" icon="add_alert" disabled={!sectors.some((sector) => sector.active !== false)} onClick={() => setEditing({})}>
+            Nueva alerta de riesgo
+          </Button>
+        </div>
       </div>
 
       {/* Zona y resumen */}
       <div className="console__toolbar">
-        <div className="console__zones" role="tablist" aria-label="Zona">
-          {[{ id: 'todas', name: 'Todas las zonas' }, ...sectors].map((s) => (
-            <button key={s.id} role="tab" aria-selected={zone === s.id} className={zone === s.id ? 'is-active' : ''} onClick={() => setZone(s.id)}>
-              {s.name}
-            </button>
-          ))}
-        </div>
+        <ZonePicker zone={zone} sectors={sectors} alerts={alerts} onChange={(id) => { setZone(id); setExternalFocus(null); }} />
         <div className="console__summary">
           <span className="tone-warning">
             <span className="live-dot" /> <strong className="num">{active.length}</strong> alertas activas
@@ -1295,11 +1453,12 @@ function ConsolePage() {
 
       {loading && <p className="pc-loading" role="status">Consultando alertas en Firebase…</p>}
       <ArcaActivityFeed
-        items={allActivity}
+        items={zoneActivity}
+        zoneName={zone === 'todas' ? '' : sectors.find((s) => s.id === zone)?.name}
         sectors={sectors}
         loading={activityLoading}
         error={activityError}
-        onFocus={(position) => { setZone('todas'); setExternalFocus(position); }}
+        onFocus={(position) => setExternalFocus(position)}
       />
       {!loading && !alerts.length && (
         <p className="pc-loading">Todavía no hay alertas propias de Protección Civil. Los registros de otros módulos aparecen arriba en «Actividad y alertas de ARCA».</p>
@@ -1325,6 +1484,7 @@ function ConsolePage() {
       </div>
 
       {editing && <AlertForm alert={editing} sectors={sectors} units={units} onSave={saveAlert} onClose={() => setEditing(null)} />}
+      {newsOpen && <NewsModal news={news} onClose={() => setNewsOpen(false)} />}
     </div>
   );
 }

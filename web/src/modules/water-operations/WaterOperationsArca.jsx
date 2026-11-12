@@ -9,7 +9,10 @@ import {
   watchCitizenReports, saveSector, setSectorActive, saveDay, removeDay,
   saveOperationalReport, incorporateCitizenReport, assignWork, markWorkDone,
   resolveAndNotify, publishSectorNotice, publishRiskFromReport,
+  watchGeneratedReports, saveGeneratedReport, deleteGeneratedReport,
 } from './tandeoService';
+import { aiAvailable, generateTandeoReport } from './aiService';
+import { buildOperationReport } from './operationReport';
 
 const TYPES = [
   ['fuga', 'Fuga de agua'], ['sin-agua', 'Sin suministro'], ['baja-presion', 'Baja presión'],
@@ -224,9 +227,67 @@ function NoticesTab({ sectors, notices, name }) {
     <LayoutCard title="Avisos publicados">{notices.map((n) => <div className="wo-notice" key={n.id}><strong>{n.title}</strong><p>{n.message}</p><small>Departamento de Operaciones / {n.reporter} · {fmt(n.creadoEn)}</small></div>)}</LayoutCard>
   </div>;
 }
-function StatsTab({ reports, notices, sectors }) {
+// Respaldo en este equipo cuando Firestore no permite guardar (p. ej. reglas sin desplegar)
+const LOCAL_REPORTS_KEY = 'arca-generated-reports';
+const readLocalReports = () => { try { return JSON.parse(localStorage.getItem(LOCAL_REPORTS_KEY)) || []; } catch { return []; } };
+const reportTime = (g) => g.creadoEn?.toMillis?.() ?? (g.creadoEn ? new Date(g.creadoEn).getTime() : Date.now());
+const RISK_CLASS = { Bajo: 'low', Medio: 'mid', Alto: 'high', 'Crítico': 'critical' };
+const dayLabel = (value) => (value ? new Date(value).toLocaleDateString('es-MX') : '—');
+function RiskChip({ level }) { return level && level !== '—' ? <span className={`wo-risk ${RISK_CLASS[level] || ''}`}>{level}</span> : '—'; }
+function ReportTable({ head, rows }) {
+  return <div className="wo-tablewrap"><table className="wo-table">
+    <thead><tr>{head.map((h) => <th key={h}>{h}</th>)}</tr></thead>
+    <tbody>{rows.length ? rows.map((row, i) => <tr key={i}>{row.map((cell, j) => <td key={j}>{cell}</td>)}</tr>) : <tr><td colSpan={head.length} className="wo-empty">Sin registros</td></tr>}</tbody>
+  </table></div>;
+}
+function ReportView({ report, onClose }) {
+  useEffect(() => {
+    const onKey = (e) => { if (e.key === 'Escape') onClose(); };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [onClose]);
+  const ind = report.indicadores || {};
+  let section = 0;
+  const title = (text) => <h3>{section += 1}. {text}</h3>;
+  return <div className="wo-overlay" onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}>
+    <div className="wo-dialog wo-reportview" role="dialog" aria-modal="true" aria-label={report.titulo}>
+      <div className="wo-cardhead"><div><span className="wo-kicker">{report.folio}</span><h2>{report.titulo}</h2></div><button className="wo-small" onClick={onClose}>Cerrar</button></div>
+      <section><h3>Datos del reporte</h3><ReportTable head={['Dato', 'Valor']} rows={[
+        ['Folio', report.folio],
+        ['Fecha de generación', fmt(report.creadoEn)],
+        ['Generado por', report.generadoPor],
+        ['Periodo de los datos', report.periodo?.desde ? `${dayLabel(report.periodo.desde)} – ${dayLabel(report.periodo.hasta)}` : 'Sin fechas registradas'],
+        ['Registros analizados', `${report.registros?.incidencias ?? 0} incidencias · ${report.registros?.avisos ?? 0} avisos · ${report.registros?.sectores ?? 0} sectores`],
+        ['Método de análisis', report.metodo === 'ia' ? `Inteligencia artificial (${report.modelo}) con validación de estructura` : `Cálculo automático sin IA${report.errorIA ? ` (IA no disponible: ${report.errorIA})` : ''}`],
+        ['Fuente', 'Base de datos ARCA (reportes del sistema y avisos publicados)'],
+      ]}/></section>
+      <section>{title('Indicadores clave')}<div className="wo-statrow">
+        {[['Reportes totales', ind.reportes], ['Abiertos', ind.abiertos], ['Últimas 24 h', ind.ultimas24h], ['Avisos publicados', ind.avisos], ['Horas hasta notificar (prom.)', ind.horasHastaAvisar]].map(([k, v]) => <div className="wo-status" key={k}><strong>{k}</strong><b>{v ?? '—'}</b></div>)}
+        {report.nivelAlerta && <div className="wo-status"><strong>Nivel de alerta general</strong><RiskChip level={report.nivelAlerta}/></div>}
+      </div></section>
+      {report.resumen && <section>{title('Resumen ejecutivo')}<p>{report.resumen}</p></section>}
+      <section>{title('Diagnóstico por sector')}<ReportTable head={['Sector', 'Reportes', 'Abiertos', 'Riesgo', 'Diagnóstico']}
+        rows={(report.sectores || []).map((r) => [r.sector, r.reportes, r.abiertos, <RiskChip level={r.riesgo}/>, r.diagnostico])}/></section>
+      <section>{title('Prioridades de atención')}<ReportTable head={['#', 'Incidencia', 'Sector', 'Motivo', 'Acción inmediata']}
+        rows={(report.prioridades || []).map((p) => [p.orden, p.incidencia, p.sector, p.motivo, p.accion])}/></section>
+      {report.metodo === 'ia' && <section>{title('Recomendaciones para el tandeo')}<ReportTable head={['Acción', 'Sector', 'Plazo', 'Responsable']}
+        rows={(report.recomendaciones || []).map((r) => [r.accion, r.sector, r.plazo, r.responsable])}/></section>}
+      <section>{title('Detalle de incidencias registradas')}<ReportTable head={['#', 'Fecha', 'Tipo', 'Origen', 'Sector', 'Colonia', 'Estado', 'Descripción']}
+        rows={(report.incidencias || []).map((r, i) => [i + 1, fmt(r.fecha), r.tipo, r.origen, r.sector, r.colonia, r.estado, r.descripcion])}/></section>
+      <section>{title('Avisos publicados')}<ReportTable head={['Fecha', 'Título', 'Sector', 'Nivel']}
+        rows={(report.avisos || []).map((n) => [fmt(n.fecha), n.titulo, n.sector, n.nivel])}/></section>
+    </div>
+  </div>;
+}
+function StatsTab({ reports, notices, sectors, operatorName }) {
   const [analysis, setAnalysis] = useState('');
   const [loadingAnalysis, setLoadingAnalysis] = useState(false);
+  const [generated, setGenerated] = useState([]);
+  const [busyId, setBusyId] = useState('');
+  const [viewing, setViewing] = useState(null);
+  const [localReports, setLocalReports] = useState(readLocalReports);
+  const keepLocal = (list) => { setLocalReports(list); try { localStorage.setItem(LOCAL_REPORTS_KEY, JSON.stringify(list)); } catch {} };
+  useEffect(() => watchGeneratedReports(setGenerated, (e) => console.error('Reportes generados:', e)), []);
   const byType = TYPES.map(([type, name]) => ({ type, name, count: reports.filter((r) => r.type === type).length })).filter((v) => v.count);
   const open = reports.filter((r) => !['resuelto', 'publicado'].includes(r.status)).length;
   const noticesWithDuration = reports.filter(r => r.notice?.at && r.creadoEn?.toDate?.());
@@ -241,19 +302,64 @@ function StatsTab({ reports, notices, sectors }) {
     <LayoutCard title="Análisis de operación">
       <button className="wo-button" disabled={loadingAnalysis} onClick={async () => {
         setLoadingAnalysis(true);
+        setAnalysis('');
         const stats = { reportes: reports.length, abiertos: open, ultimas24h: last24, horasHastaAvisar: avgHours, porTipo: byType, porSector: sectors.map(s => ({ sector: s.name, cantidad: reports.filter(r=>r.sectorId===s.id).length })) };
+        const typeName = (type) => TYPES.find(([key]) => key === type)?.[1] || type || 'Otro';
+        const isOpen = (r) => !['resuelto', 'publicado'].includes(r.status);
+        let ai = null; let model = ''; let aiError = '';
         try {
-          const res = await fetch('/api/ia/analisis', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({ stats }) });
-          if (!res.ok) throw Error('Servidor de IA no disponible');
-          const data = await res.json();
-          setAnalysis(typeof data.resumen === 'string' ? data.resumen : JSON.stringify(data));
-        } catch {
-          setAnalysis(`Resumen automático (sin IA): se registraron ${reports.length} reportes, ${open} siguen abiertos y ${last24} llegaron en las últimas 24 horas. Sector con más reportes: ${[...sectors].sort((a,b)=>reports.filter(r=>r.sectorId===b.id).length - reports.filter(r=>r.sectorId===a.id).length)[0]?.name || 'ninguno'}.`);
+          ({ report: ai, model } = await generateTandeoReport({ stats, reports, notices, sectors, typeName }));
+        } catch (error) {
+          console.error('Análisis con IA:', error);
+          aiError = error.message;
+        }
+        try {
+          const report = buildOperationReport({ ai, model, error: aiError, operator: operatorName, stats, reports, notices, sectors, typeName, isOpen });
+          const method = ai ? `con IA (${model})` : 'sin IA (cálculo automático de los datos)';
+          try {
+            const id = await saveGeneratedReport(report);
+            setViewing({ id, ...report, creadoEn: new Date() });
+            setAnalysis(`Reporte ${report.folio} generado ${method} y guardado en Reportes generados.`);
+          } catch (error) {
+            console.error('Guardar reporte:', error);
+            const local = { id: `local-${report.folio}`, ...report, creadoEn: new Date().toISOString(), local: true };
+            keepLocal([local, ...readLocalReports()].slice(0, 30));
+            setViewing(local);
+            setAnalysis(`Reporte ${report.folio} generado ${method} y guardado en este equipo (el sistema no permitió guardarlo en la nube: ${error.message}).`);
+          }
+        } catch (error) {
+          console.error('Reporte:', error);
+          setAnalysis('No se pudo generar el reporte. Inténtalo de nuevo.');
         } finally { setLoadingAnalysis(false); }
-      }}>{loadingAnalysis ? 'Generando…' : 'Generar análisis'}</button>
+      }}>{loadingAnalysis ? 'Analizando datos…' : 'Generar reporte'}</button>
       {analysis && <p>{analysis}</p>}
-      <small>El endpoint /api/ia/analisis requiere un servidor seguro. Si no está configurado, aparece un resumen local de los datos reales.</small>
+      <small>{aiAvailable() ? 'Genera un reporte con metadatos, indicadores, diagnóstico por sector, prioridades, recomendaciones (IA) y el detalle de las incidencias, organizado en tablas. Se guarda en Reportes generados. Si la IA no responde en 1 minuto, se genera con los datos calculados.' : 'Sin llave de IA (VITE_GEMINI_API_KEY): el reporte se genera con los datos calculados.'}</small>
     </LayoutCard>
+    <LayoutCard title="Reportes generados">
+      {generated.length + localReports.length ? <div className="wo-tablewrap"><table className="wo-table">
+        <thead><tr><th>Fecha</th><th>Folio</th><th>Reporte</th><th>Método</th><th>Nivel de alerta</th><th>Incidencias</th><th>Generado por</th><th>Acciones</th></tr></thead>
+        <tbody>{[...generated, ...localReports].sort((a, b) => reportTime(b) - reportTime(a)).map((g) => <tr key={g.id}>
+          <td>{fmt(g.creadoEn)}</td>
+          <td>{g.folio}</td>
+          <td><strong>{g.titulo || 'Reporte de estadísticas'}</strong></td>
+          <td>{g.metodo === 'ia' ? <>IA<small>{g.modelo}</small></> : 'Cálculo automático'}{g.local && <small>Solo en este equipo</small>}</td>
+          <td><RiskChip level={g.nivelAlerta}/></td>
+          <td>{g.registros?.incidencias ?? 0}</td>
+          <td>{g.generadoPor}</td>
+          <td><div className="wo-tableactions">
+            <button className="wo-small" onClick={() => setViewing(g)}>Ver</button>
+            <button className="wo-small danger" disabled={busyId === g.id} onClick={async () => {
+              if (!confirm(`¿Eliminar el reporte ${g.folio}? Esta acción no se puede deshacer.`)) return;
+              setBusyId(g.id);
+              try { if (g.local) keepLocal(readLocalReports().filter((r) => r.id !== g.id)); else await deleteGeneratedReport(g.id); }
+              catch (error) { setAnalysis(`No se pudo eliminar: ${error.message}`); }
+              finally { setBusyId(''); }
+            }}>Eliminar</button>
+          </div></td>
+        </tr>)}</tbody>
+      </table></div> : <small>Aún no hay reportes guardados. Cada reporte que generes aparecerá aquí para consultarlo o eliminarlo.</small>}
+    </LayoutCard>
+    {viewing && <ReportView report={viewing} onClose={() => setViewing(null)}/>}
   </div>;
 }
 export default function WaterOperationsArca({ profile, onLogout }) {
@@ -312,7 +418,7 @@ export default function WaterOperationsArca({ profile, onLogout }) {
       {tab === 'calendar' && <SectorTab sectors={sectors}/>}
       {tab === 'reports' && <ReportsTab sectors={sectors} reports={reports} citizens={citizens} status={status} operatorName={name}/>}
       {tab === 'notices' && <NoticesTab sectors={sectors} notices={notices} name={name}/>}
-      {tab === 'stats' && <StatsTab reports={reports} notices={notices} sectors={sectors}/>}
+      {tab === 'stats' && <StatsTab reports={reports} notices={notices} sectors={sectors} operatorName={name}/>}
       {floatingNotice && <button className="wo-floating-notice" onClick={() => { setFloatingNotice(''); setTab('reports'); }} role="status">🔔 {floatingNotice} · Ver reportes</button>}
     </main>
   </div>;

@@ -339,3 +339,36 @@
    ));
    return () => unsubscribers.forEach((unsubscribe) => unsubscribe());
  }
+
+ // ==========================================
+ // NOTICIAS DE PROTECCIÓN CIVIL PARA LA CIUDADANÍA
+ // Colección propia (pcNews): no interfiere con avisos ni alertas.
+ // ==========================================
+ export const MAX_NEWS_IMAGES = 2;
+
+ export const watchPcNews = (callback, error) => watch('pcNews',
+   (n) => ({ ...n, createdAt: dateString(n.creadoEn) }),
+   (all) => callback(all.sort((a, b) => b.createdAt.localeCompare(a.createdAt))), error);
+
+ export async function publishPcNews(input) {
+   const user = requireSession();
+   const title = String(input.title || '').trim();
+   const body = String(input.body || '').trim();
+   const images = Array.isArray(input.images) ? input.images : [];
+   if (title.length < 5 || title.length > 120) throw Error('El título debe tener entre 5 y 120 caracteres.');
+   if (body.length < 10 || body.length > 1500) throw Error('La descripción debe tener entre 10 y 1500 caracteres.');
+   if (images.length > MAX_NEWS_IMAGES || !images.every(photoValid))
+     throw Error(`Agrega como máximo ${MAX_NEWS_IMAGES} imágenes comprimidas válidas.`);
+   const ref = await addDoc(collection(db, 'pcNews'), {
+     title, body, images,
+     author: 'Protección Civil',
+     createdBy: user.uid,
+     creadoEn: serverTimestamp(),
+   });
+   return ref.id;
+ }
+
+ export async function removePcNews(id) {
+   requireSession();
+   await deleteDoc(doc(db, 'pcNews', id));
+ }

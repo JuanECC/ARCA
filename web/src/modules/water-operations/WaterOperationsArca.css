@@ -206,3 +206,23 @@ textarea.wo-input { min-height:95px; resize:vertical; }
   .arca-admin .wo-header { flex-wrap:wrap; }
   .arca-admin .wo-head-actions { width:100%; justify-content:flex-end; }
 }
+
+/* Reportes generados (Estadísticas) */
+.wo-tablewrap { overflow-x:auto; border:1px solid var(--border); border-radius:12px; }
+.wo-table { width:100%; border-collapse:collapse; font-size:.84rem; }
+.wo-table th { text-align:left; padding:10px 12px; background:var(--surface-high); color:var(--text-soft); font-size:.74rem; font-weight:700; text-transform:uppercase; letter-spacing:.03em; white-space:nowrap; }
+.wo-table td { padding:10px 12px; border-top:1px solid var(--border); vertical-align:middle; }
+.wo-table td small { display:block; color:var(--text-soft); font-size:.74rem; }
+.wo-table .wo-tableactions { display:flex; gap:6px; justify-content:flex-start; white-space:nowrap; }
+.wo-small.danger { color:#b34242; border-color:#b3424266; }
+.wo-small:disabled { opacity:.55; cursor:not-allowed; }
+.wo-table .wo-empty { text-align:center; color:var(--text-soft); }
+.wo-dialog.wo-reportview { width:min(100%,1100px); gap:22px; }
+.wo-reportview section { display:grid; gap:10px; }
+.wo-reportview h3 { font-size:.98rem; color:var(--primary, #006686); }
+.wo-reportview p { color:var(--text); line-height:1.55; }
+.wo-risk { display:inline-block; padding:4px 9px; border-radius:8px; font-size:.75rem; font-weight:700; background:var(--surface-high); color:var(--text); }
+.wo-risk.low { background:#d9f5e8; color:#07533a; }
+.wo-risk.mid { background:#fff0c5; color:#704600; }
+.wo-risk.high { background:#ffe2cc; color:#8a3d00; }
+.wo-risk.critical { background:#ffe2de; color:#8d2420; }
