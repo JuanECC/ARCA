@@ -1,0 +1,8 @@
+/* ARCA: layout exclusivo de Operaciones. No altera los otros roles. */
+body.arca-water-body { background: #f6f8f9; }
+body.arca-water-body.arca-water-dark { background: #0c1113; }
+.page.page--water-operator {
+  display:block; width:100%; max-width:none; min-width:0;
+  margin:0; padding:0; gap:0;
+}
+.page--water-operator > .arca-admin { min-height:100dvh; }

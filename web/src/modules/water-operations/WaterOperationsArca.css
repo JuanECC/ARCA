@@ -1,0 +1,208 @@
+/* Estilos complementarios; hereda el tema .arca-admin del diseño de ArcaTandeoAdmin */
+.wo-root { min-height: 100dvh; background: var(--bg, var(--surface)); color: var(--text); }
+.wo-root * { min-width: 0; }
+.wo-header { display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:12px; padding:16px clamp(14px,3vw,36px); background:var(--surface); border-bottom:1px solid var(--border); }
+.wo-header > div { display:grid; gap:2px; }
+.wo-header strong { font-size:1.1rem; }
+.wo-header small { color:var(--text-soft); }
+.wo-main { max-width:1480px; padding:clamp(12px,3vw,32px); margin:0 auto; display:grid; gap:22px; }
+.wo-intro h1 { font-size:clamp(1.35rem,2vw,2rem); }
+.wo-intro p,.wo-card p { color:var(--text-soft); }
+.wo-tabs { display:flex; gap:8px; overflow-x:auto; padding-bottom:3px; }
+.wo-tabs button { white-space:nowrap; padding:10px 14px; border:1px solid var(--border); border-radius:12px; color:var(--text); background:var(--surface); }
+.wo-tabs button.selected { color:#fff; background:#006686; border-color:#006686; }
+.wo-grid { display:grid; grid-template-columns:minmax(300px,0.8fr) minmax(0,1.4fr); gap:18px; align-items:start; }
+.wo-stack { display:grid; gap:18px; }
+.wo-card { background:var(--surface); border:1px solid var(--border); border-radius:18px; padding:clamp(12px,2vw,24px); box-shadow:0 3px 14px #001e3010; display:grid; gap:15px; }
+.wo-cardhead { display:flex; flex-wrap:wrap; gap:12px; align-items:center; justify-content:space-between; }
+.wo-card h2 { font-size:1.08rem; }
+.wo-input { width:100%; border:1px solid var(--border); border-radius:10px; color:var(--text); background:var(--surface-high); min-height:40px; padding:9px 12px; }
+textarea.wo-input { min-height:95px; resize:vertical; }
+.wo-form { display:grid; gap:14px; }
+.wo-form label { display:grid; gap:6px; font-size:.84rem; font-weight:650; }
+.wo-button { padding:10px 15px; border-radius:11px; font-weight:700; background:#006686; color:#fff; min-height:42px; }
+.wo-button.secondary,.wo-small { background:var(--surface-high); color:var(--text); border:1px solid var(--border); }
+.wo-small { padding:8px 10px; border-radius:9px; font-size:.8rem; }
+.wo-button:disabled { opacity:.55; cursor:not-allowed; }
+.wo-sectorlist { display:grid; gap:8px; max-height:390px; overflow:auto; }
+.wo-sector { display:flex; gap:7px; align-items:center; padding:9px; border-radius:12px; background:var(--surface-high); }
+.wo-link { flex:1; display:grid; text-align:left; gap:3px; padding:4px; color:var(--text); }
+.wo-link small { font-size:.73rem; color:var(--text-soft); }
+.wo-link.active { color:#0299c3; }
+.wo-monthhead,.wo-actions { display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:9px; }
+.wo-calendar { display:grid; grid-template-columns:repeat(7,minmax(0,1fr)); gap:5px; }
+.wo-calendar > b { text-align:center; font-size:.72rem; padding:7px 0; }
+.wo-day { padding:8px 3px; min-height:63px; display:grid; place-items:center; align-content:center; gap:3px; border:1px solid var(--border); background:var(--surface-high); border-radius:8px; }
+.wo-day small { font-size:.63rem; }
+.wo-day.continuo { background:#d9f5e8; color:#07533a; }.wo-day.parcial { background:#fff0c5; color:#704600; }.wo-day.corte { background:#ffe2de; color:#8d2420; }
+.wo-day.locked { opacity:.75; }.wo-day.empty { border-style:dashed; }
+.wo-overlay { position:fixed; inset:0; z-index:3000; background:#0009; display:grid; place-items:center; padding:14px; }
+.wo-dialog { width:min(100%,550px); max-height:94dvh; overflow:auto; background:var(--surface); color:var(--text); border-radius:18px; padding:24px; display:grid; gap:16px; box-shadow:0 18px 60px #0005; }
+.wo-2 { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:12px; }
+.wo-picker { border-radius:12px; overflow:hidden; border:1px solid var(--border); display:grid; gap:6px; }
+.wo-picker small { padding:6px 10px; }
+.wo-photo { max-height:180px; width:100%; object-fit:cover; border-radius:11px; }
+.wo-reportgrid { display:grid; grid-template-columns:repeat(auto-fit,minmax(min(100%,280px),1fr)); gap:12px; }
+.wo-report { background:var(--surface-high); border:1px solid var(--border); padding:15px; border-radius:14px; display:grid; align-content:start; gap:10px; }
+.wo-report small { color:var(--text-soft); }
+.wo-reporttop { display:flex; justify-content:space-between; align-items:center; gap:10px; }
+.wo-chip { background:#d5f2fb; color:#00506d; padding:5px 9px; font-size:.73rem; font-weight:650; border-radius:8px; }
+.wo-statrow { display:grid; grid-template-columns:repeat(auto-fit,minmax(min(100%,170px),1fr)); gap:10px; }
+.wo-status { background:var(--surface-high); border:1px solid var(--border); border-radius:12px; padding:14px; display:grid; gap:8px; }.wo-status b { font-size:1.8rem; }
+.wo-notice { padding:13px 0; border-bottom:1px solid var(--border); display:grid; gap:5px; }
+.wo-progress { height:6px; background:var(--border); border-radius:5px; overflow:hidden; }.wo-progress span { height:100%; display:block; background:#007ca3; }
+.wo-bars { display:grid; grid-template-columns:minmax(100px,1fr) minmax(0,3fr) 28px; align-items:center; gap:12px; }.wo-bars > div { height:9px; background:var(--border); border-radius:20px; overflow:hidden; }.wo-bars > div span { display:block; height:100%; background:#007ca3; }
+.wo-feedback { padding:10px 13px; background:var(--surface-high); border:1px solid var(--border); border-radius:10px; }.wo-error { border-color:#b34242; }
+@media(max-width:850px) { .wo-grid { grid-template-columns:1fr; } }
+@media(max-width:530px) { .wo-header { padding:12px; }.wo-main { padding:12px; }.wo-day { min-height:51px; padding:5px 0; }.wo-day small { font-size:.54rem; }.wo-2 { grid-template-columns:1fr; }.wo-sector { flex-wrap:wrap; }.wo-sector .wo-link { flex-basis:100%; }.wo-card { padding:13px; } }
+
+.wo-floating-notice { position:fixed; right:18px; bottom:18px; z-index:4000; background:#006686; color:#fff; max-width:min(380px,calc(100vw - 36px)); border:0; border-radius:12px; padding:15px; box-shadow:0 10px 32px #0004; text-align:left; }
+
+/* ==============================================
+   REDISEÑO 2026 — ARCA OPERACIONES
+   Estilos exclusivos de este módulo.
+   ============================================== */
+.arca-admin.wo-root {
+  min-height: 100dvh;
+  background: var(--bg);
+  color: var(--text);
+}
+.arca-admin .wo-header {
+  position: relative;
+  z-index: 10;
+  padding: 15px clamp(16px, 2.5vw, 36px);
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  box-shadow: 0 2px 12px rgba(0, 35, 51, .04);
+}
+.arca-admin .wo-brand { display:flex; align-items:center; flex-wrap:wrap; gap:12px; }
+.arca-admin .wo-brand > div { display:grid; gap:3px; }
+.arca-admin .wo-brand strong { font-size: 1.05rem; font-weight: 800; letter-spacing:-.025em; }
+.arca-admin .wo-brand strong span { color:#0087ac; }
+.arca-admin[data-theme='dark'] .wo-brand strong span { color:#69d4f5; }
+.arca-admin .wo-brandmark {
+  width: 43px; height:43px; display:grid; place-items:center;
+  border-radius:13px; background:linear-gradient(145deg,#007da2,#004c6b);
+  color:white; font-size:1.3rem; box-shadow:0 5px 14px #005d7b30;
+}
+.arca-admin .wo-live {
+  display:inline-flex; align-items:center; gap:7px; padding:6px 10px;
+  font-size:.71rem; font-weight:700; color:#006481;
+  border-radius:50px; background:#d7f1fb; white-space:nowrap;
+}
+.arca-admin .wo-live > span { width:7px; height:7px; border-radius:50%; background:#008ba8; }
+.arca-admin[data-theme='dark'] .wo-live { background:#153b4b; color:#9ee6fa; }
+.arca-admin .wo-head-actions { display:flex; align-items:center; gap:9px; flex-wrap:wrap; }
+.arca-admin .wo-department { font-size:.74rem; color:var(--text-soft); margin-right:7px; }
+.arca-admin .wo-theme-toggle,
+.arca-admin .wo-logout {
+  display:inline-flex; align-items:center; justify-content:center; gap:8px;
+  min-height:42px; padding:8px 14px; border:1px solid var(--border);
+  border-radius:13px; background:var(--surface); color:var(--text);
+  font-size:.84rem; font-weight:700; transition:transform .18s,background-color .18s,border-color .18s;
+}
+.arca-admin .wo-theme-toggle { width:43px; padding:0; font-size:1.5rem; }
+.arca-admin .wo-logout { color:#b84040; background:rgba(226,75,75,.08); border-color:rgba(212,88,88,.29); }
+.arca-admin[data-theme='dark'] .wo-logout { color:#ffaca5; background:rgba(247,110,110,.11); border-color:rgba(247,110,110,.3); }
+.arca-admin .wo-theme-toggle:hover,.arca-admin .wo-logout:hover { transform:translateY(-1px); }
+.arca-admin .wo-main { max-width:1600px; padding:clamp(17px, 2.6vw, 36px); gap:22px; }
+.arca-admin .wo-intro {
+  display:flex; gap:20px; justify-content:space-between; align-items:center;
+  padding:clamp(18px,2.1vw,28px);
+  border:1px solid var(--border); border-radius:20px;
+  background:radial-gradient(circle at 100% 0%, rgba(45,166,211,.12),transparent 45%),var(--surface);
+}
+.arca-admin .wo-intro > div:first-child { display:grid; gap:8px; }
+.arca-admin .wo-kicker { color:var(--primary); font-size:.69rem; font-weight:800; letter-spacing:.095em; }
+.arca-admin .wo-intro h1 { font-size:clamp(1.5rem,2.5vw,2.2rem); line-height:1.13; }
+.arca-admin .wo-intro p { max-width:680px; line-height:1.6; font-size:.87rem; }
+.arca-admin .wo-intro-count {
+  min-width:128px; border:1px solid var(--border); border-radius:16px;
+  background:var(--surface-low); padding:15px 19px; text-align:center; display:grid; gap:2px;
+}
+.arca-admin .wo-intro-count strong { font-size:1.8rem; line-height:1.15; color:var(--primary); }
+.arca-admin .wo-intro-count small { font-size:.72rem; color:var(--text-soft); }
+.arca-admin .wo-tabs {
+  gap:9px; padding:3px 0 9px; scrollbar-width:thin;
+}
+.arca-admin .wo-tabs button {
+  flex:0 0 auto; background:var(--surface); border:1px solid var(--border);
+  border-radius:11px; padding:12px 17px; color:var(--text); font-weight:700;
+  transition:background-color .2s,border-color .2s,transform .2s;
+}
+.arca-admin .wo-tabs button:hover { border-color:#158eae; transform:translateY(-1px); }
+.arca-admin .wo-tabs button.selected { color:#fff; background:#006f91; border-color:#006f91; box-shadow:0 5px 12px #006b8e28; }
+.arca-admin .wo-grid { grid-template-columns:minmax(290px,.72fr) minmax(0,1.4fr); gap:18px; }
+.arca-admin .wo-card {
+  border:1px solid var(--border); border-radius:20px; background:var(--surface);
+  padding:clamp(16px,2vw,25px); gap:17px; box-shadow:var(--shadow);
+}
+.arca-admin .wo-cardhead { align-items:flex-start; }
+.arca-admin .wo-card h2 { font-size:1.06rem; font-weight:800; }
+.arca-admin .wo-sectorlist { max-height:335px; padding-right:3px; }
+.arca-admin .wo-sector {
+  background:var(--surface-low); border:1px solid transparent; border-radius:13px;
+  padding:10px 11px; min-height:64px;
+}
+.arca-admin .wo-sector:hover { border-color:var(--border); }
+.arca-admin .wo-link.active strong { color:var(--primary); }
+.arca-admin .wo-input {
+  border:1px solid var(--border); border-radius:11px; background:var(--surface-low);
+  min-height:45px; color:var(--text); padding:10px 12px;
+}
+.arca-admin .wo-input:focus-visible { outline:2px solid #2ea0c3; outline-offset:1px; }
+.arca-admin .wo-button { border-radius:11px; min-height:44px; transition:filter .2s,transform .2s; }
+.arca-admin .wo-button:hover:not(:disabled) { filter:brightness(1.1); transform:translateY(-1px); }
+.arca-admin .wo-small { border-radius:10px; min-height:36px; }
+.arca-admin .wo-monthhead {
+  padding:7px 0 10px; border-bottom:1px solid var(--border);
+}
+.arca-admin .wo-monthhead strong { text-transform:capitalize; }
+.arca-admin .wo-calendar { gap:6px; }
+.arca-admin .wo-calendar > b { color:var(--text-soft); }
+.arca-admin .wo-day {
+  border-radius:11px; min-height:72px; border:1px solid var(--border);
+  background:var(--surface-low); transition:transform .16s,border-color .16s;
+}
+.arca-admin .wo-day:hover { transform:translateY(-2px); border-color:#299fbd; }
+.arca-admin .wo-day.continuo { background:#d5f4e6; color:#08523a; border-color:#a7dec7; }
+.arca-admin .wo-day.parcial { background:#fff0c6; color:#714300; border-color:#f1d999; }
+.arca-admin .wo-day.corte { background:#ffe0dc; color:#8e2b27; border-color:#f5bdb7; }
+.arca-admin[data-theme='dark'] .wo-day.continuo { background:#124934; color:#b5f4d2; border-color:#236f50; }
+.arca-admin[data-theme='dark'] .wo-day.parcial { background:#553c0e; color:#ffe0a2; border-color:#816021; }
+.arca-admin[data-theme='dark'] .wo-day.corte { background:#572728; color:#ffc8c3; border-color:#895054; }
+.arca-admin .wo-day.locked { opacity:.78; }
+.arca-admin .wo-report,.arca-admin .wo-status { background:var(--surface-low); border-color:var(--border); }
+.arca-admin .wo-chip { border-radius:999px; }
+.arca-admin .wo-floating-notice { position:fixed; bottom:20px; right:20px; max-width:min(380px,calc(100vw - 40px)); }
+@media (max-width:980px) {
+  .arca-admin .wo-grid { grid-template-columns:1fr; }
+  .arca-admin .wo-department { display:none; }
+}
+@media (max-width:600px) {
+  .arca-admin .wo-header { padding:12px 14px; }
+  .arca-admin .wo-brand { gap:8px; }
+  .arca-admin .wo-brandmark { width:38px; height:38px; }
+  .arca-admin .wo-brand strong { font-size:.93rem; }
+  .arca-admin .wo-brand small { font-size:.65rem; }
+  .arca-admin .wo-live { display:none; }
+  .arca-admin .wo-head-actions { margin-left:auto; gap:6px; }
+  .arca-admin .wo-logout { padding:7px 10px; min-height:38px; }
+  .arca-admin .wo-theme-toggle { width:38px; min-height:38px; }
+  .arca-admin .wo-main { padding:13px; gap:16px; }
+  .arca-admin .wo-intro { padding:18px; }
+  .arca-admin .wo-intro-count { min-width:82px; padding:10px; }
+  .arca-admin .wo-intro-count strong { font-size:1.35rem; }
+  .arca-admin .wo-intro-count small { font-size:.62rem; }
+  .arca-admin .wo-tabs button { padding:10px 11px; font-size:.79rem; }
+  .arca-admin .wo-calendar { gap:3px; }
+  .arca-admin .wo-day { min-height:50px; padding:5px 1px; }
+  .arca-admin .wo-day small { font-size:.54rem; }
+  .arca-admin .wo-card { border-radius:16px; padding:14px; }
+  .arca-admin .wo-dialog { padding:17px; }
+}
+@media (max-width:360px) {
+  .arca-admin .wo-intro-count { display:none; }
+  .arca-admin .wo-header { flex-wrap:wrap; }
+  .arca-admin .wo-head-actions { width:100%; justify-content:flex-end; }
+}

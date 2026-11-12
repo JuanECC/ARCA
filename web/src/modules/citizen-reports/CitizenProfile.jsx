@@ -1,10 +1,13 @@
 import { useEffect, useRef, useState } from 'react';
 import './CitizenProfile.css';
 import { isCitizenProfileComplete } from './profileService';
+import { auth } from '../auth/firebase';
+import { collection, getFirestore, onSnapshot, query, where } from 'firebase/firestore';
 
 const emptyForm = {
   address: '',
   zone: '',
+  sectorId: '',
   zipCode: '',
   phone: '',
   receiveAlerts: true,
@@ -12,6 +15,13 @@ const emptyForm = {
 
 export default function CitizenProfile({ profile, account, onClose, onSave }) {
   const [form, setForm] = useState(emptyForm);
+  const [sectors, setSectors] = useState([]);
+  useEffect(() => {
+    if (!auth?.app) return;
+    return onSnapshot(query(collection(getFirestore(auth.app), 'sectors'), where('active','==',true)), snap => {
+      setSectors(snap.docs.map(d => ({ id:d.id, ...d.data() })).filter(s => s.active !== false));
+    });
+  }, []);
   const [saving, setSaving] = useState(false);
   const [photoFile, setPhotoFile] = useState(null);
   const [photoPreview, setPhotoPreview] = useState('');
@@ -26,6 +36,7 @@ export default function CitizenProfile({ profile, account, onClose, onSave }) {
     setForm({
       address: profile?.address ?? '',
       zone: profile?.zone ?? '',
+      sectorId: profile?.sectorId ?? '',
       zipCode: profile?.zipCode ?? '',
       phone: profile?.phone ?? '',
       receiveAlerts: profile?.receiveAlerts ?? true,
@@ -222,6 +233,15 @@ export default function CitizenProfile({ profile, account, onClose, onSave }) {
                   <option value="poniente">Zona Poniente</option>
                   <option value="rural">Zona Rural</option>
                 </select>
+              </label>
+
+              <label className="profile-field" htmlFor="profile-sector">
+                <span>Sector de abastecimiento de agua *</span>
+                <select id="profile-sector" name="sectorId" value={form.sectorId} onChange={updateField} required>
+                  <option value="">Selecciona el sector de tu colonia</option>
+                  {sectors.map(s => <option key={s.id} value={s.id}>{s.name} · {s.colonias}</option>)}
+                </select>
+                <small>El calendario y los avisos se filtran por el sector seleccionado, no solo por la zona general.</small>
               </label>
 
               <div className="profile-field-grid">

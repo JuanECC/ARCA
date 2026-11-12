@@ -1,0 +1,129 @@
+/*
+ * ARCA · Panel del administrador de tandeo · estilos (claro y oscuro).
+ * Todo está dentro de .arca-admin: no afecta al resto del proyecto.
+ */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@600;700;800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,400..600,0..1,0&display=block');
+
+/* Contenedor de todo el panel (antes era <body>) */
+.arca-admin {
+  min-height: 100vh;
+  text-align: left;
+}
+
+/* ---------- styles/theme.css ---------- */
+/*
+ * Colores y fuentes de ARCA.
+ * Cada color existe en versión clara y oscura: los componentes solo usan
+ * estas variables, así el texto nunca pierde contraste al cambiar de tema.
+ */
+
+.arca-admin {
+  --font-text: 'Inter', system-ui, sans-serif;
+  --font-title: 'Plus Jakarta Sans', 'Inter', sans-serif;
+
+  --radius: 0.75rem;
+  --radius-lg: 1.25rem;
+  --header-h: 4.5rem;
+  --gutter: 1rem;
+}
+
+@media (min-width: 768px) {
+  .arca-admin { --gutter: 2rem; }
+}
+
+/* ---------- Tema claro ---------- */
+.arca-admin[data-theme='light'] {
+  color-scheme: light;
+
+  --bg: #f6f8f9;
+  --surface: #ffffff;
+  --surface-low: #f2f4f5;
+  --surface-high: #e3e7ea;
+  --text: #182024;
+  --text-soft: #43505a;
+  --border: rgba(0, 102, 134, 0.14);
+
+  --primary: #006686;
+  --on-primary: #ffffff;
+  --primary-bg: #c4ebff;
+  --on-primary-bg: #004d66;
+
+  --secondary: #376479;
+  --secondary-bg: #d3eefc;
+  --on-secondary-bg: #1c4c60;
+
+  --tertiary: #724e97;
+  --tertiary-bg: #efdcff;
+  --on-tertiary-bg: #59367d;
+
+  --success: #1d6b4f;
+  --success-bg: #c9f0dc;
+  --on-success-bg: #0b4a33;
+
+  --warning: #8a5300;
+  --warning-bg: #ffe3b0;
+  --on-warning-bg: #5c3700;
+
+  --error: #ba1a1a;
+  --error-bg: #ffdad6;
+  --on-error-bg: #8c0009;
+
+  /* Semáforo: colores de señal para puntos y barras */
+  --risk-low: #1f8a5f;
+  --risk-mid: #d08a00;
+  --risk-high: #d32f2f;
+
+  --glass: rgba(255, 255, 255, 0.82);
+  --shadow: 0 8px 24px -10px rgba(16, 40, 56, 0.22);
+}
+
+/* ---------- Tema oscuro ---------- */
+.arca-admin[data-theme='dark'] {
+  color-scheme: dark;
+
+  --bg: #0c1113;
+  --surface: #161d20;
+  --surface-low: #1b2327;
+  --surface-high: #2a3439;
+  --text: #e3e9ec;
+  --text-soft: #b9c5cc;
+  --border: rgba(123, 209, 250, 0.14);
+
+  --primary: #7bd1fa;
+  --on-primary: #00344a;
+  --primary-bg: #0b4a63;
+  --on-primary-bg: #c4ebff;
+
+  --secondary: #a0cde5;
+  --secondary-bg: #1c4c60;
+  --on-secondary-bg: #d3eefc;
+
+  --tertiary: #dcb8ff;
+  --tertiary-bg: #4f2f73;
+  --on-tertiary-bg: #f0dbff;
+
+  --success: #7fdcb0;
+  --success-bg: #0f4a35;
+  --on-success-bg: #c9f0dc;
+
+  --warning: #fbc35c;
+  --warning-bg: #4d3300;
+  --on-warning-bg: #ffe3b0;
+
+  --error: #ffb4ab;
+  --error-bg: #7a1414;
+  --on-error-bg: #ffdad6;
+
+  --risk-low: #3fc58c;
+  --risk-mid: #f2b233;
+  --risk-high: #ff6b6b;
+
+  --glass: rgba(22, 29, 32, 0.85);
+  --shadow: 0 8px 24px -10px rgba(0, 0, 0, 0.7);
+}
+
+
+.arca-admin { color:var(--text); background:var(--bg); font-family:var(--font-text); }
+.arca-admin h1,.arca-admin h2 { color:var(--text); font-family:var(--font-title); }
+.arca-admin button,.arca-admin input,.arca-admin textarea,.arca-admin select { font:inherit; }

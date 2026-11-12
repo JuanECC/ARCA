@@ -1,0 +1,37 @@
+/* ARCA: distribución del dashboard ciudadano. No afecta otros roles. */
+.ha .ha-overview {
+  display: grid;
+  grid-template-columns: minmax(280px, 0.78fr) minmax(0, 1.8fr);
+  grid-template-areas:
+    "calendar map"
+    "reports forecast"
+    "evidence evidence";
+  gap: clamp(14px, 1.8vw, 24px);
+  align-items: stretch;
+  min-width: 0;
+}
+.ha .ha-overview > div { min-width: 0; }
+.ha .ha-overview__calendar { grid-area: calendar; }
+.ha .ha-overview__map { grid-area: map; }
+.ha .ha-overview__reports { grid-area: reports; }
+.ha .ha-overview__forecast { grid-area: forecast; }
+.ha .ha-overview__evidence { grid-area: evidence; }
+.ha .ha-overview__map > .ha-card,
+.ha .ha-overview__reports > .ha-card,
+.ha .ha-overview__forecast > .ha-card,
+.ha .ha-overview__evidence > .ha-card { height: 100%; min-width: 0; }
+.ha .ha-overview__map .ha-map { height: clamp(350px, 39vw, 530px); }
+.ha .ha-overview__reports .ha-my-reports { max-height: 310px; overflow-y: auto; }
+.ha .ha-overview__evidence .ha-evidence { width: 100%; }
+@media (max-width: 900px) {
+  .ha .ha-overview {
+    grid-template-columns: minmax(0,1fr);
+    grid-template-areas: "calendar" "map" "reports" "forecast" "evidence";
+  }
+  .ha .ha-overview__map .ha-map { height: min(62vh, 460px); min-height: 280px; }
+  .ha .ha-overview__calendar .ct-panel { width: 100%; }
+}
+@media (max-width: 480px) {
+  .ha .ha-overview { gap: 14px; }
+  .ha .ha-overview__map .ha-map { height: 320px; }
+}

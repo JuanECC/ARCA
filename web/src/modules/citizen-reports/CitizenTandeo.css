@@ -1,0 +1,103 @@
+/* ARCA · Vista ciudadana: calendario de tandeo, compatible con .ha button reset. */
+.ha .ct-panel{margin:14px 0 24px;padding:clamp(16px,2vw,24px);border:1px solid var(--border,#d3e0e6);border-radius:18px;background:var(--surface,#fff);color:var(--text,#18242a);display:grid;gap:18px;min-width:0}
+.ha .ct-panel h2,.ha .ct-panel h3{margin:0;color:inherit}
+.ct-panel__head,.ct-notices-head{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.ct-panel__head h2{font-size:1.15rem!important}
+.ct-panel__head p{font-size:.83rem;color:var(--text-soft,#65777e)}
+.ct-panel__sector{display:inline-flex;padding:6px 12px;border-radius:999px;border:1px solid var(--border,#d3e0e6);background:var(--surface-low,#f2f6f7);font-size:.78rem;font-weight:650}
+.ct-main{display:flex;gap:clamp(18px,3.5vw,48px);align-items:center;flex-wrap:wrap;min-width:0}
+/* Los botones deben sobreescribir .ha button, que elimina fondo, borde y padding */
+.ha button.ct-preview{display:block;width:min(100%,310px);flex:0 1 310px;text-align:left;background:var(--surface-low,#f4f7f8);padding:17px;border:1px solid var(--border,#d3e0e6);border-radius:19px;color:var(--text,#18242a);box-shadow:0 4px 16px rgba(12,59,82,.07);cursor:zoom-in;transition:transform .15s,box-shadow .15s,border-color .15s}
+.ha button.ct-preview:hover{transform:translateY(-2px);border-color:var(--primary,#006d89);box-shadow:0 9px 24px rgba(12,59,82,.13)}
+.ct-preview__top{display:flex;gap:9px;align-items:center;justify-content:center;margin:0 0 15px;color:var(--text,#18242a)}
+.ct-preview__top strong{font-size:.96rem;letter-spacing:-.01em}
+.ct-preview__icon{margin-right:auto;color:var(--primary,#006d89);font-size:1.3rem}
+.ct-preview__expand{margin-left:auto;color:var(--primary,#006d89);font-size:1.35rem}
+.ct-grid{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:5px;min-width:0}
+.ct-grid__weekday{text-align:center;font-size:.73rem;font-weight:750;color:var(--text-soft,#667680);padding:3px 0 7px}
+.ct-grid__empty{aspect-ratio:1}
+/* Estados con especificidad superior a .ha button. También se aplican a spans del mini calendario. */
+.ha .ct-day{aspect-ratio:1;display:grid;place-items:center;min-width:0;padding:0;border:1px solid transparent;border-radius:10px;background:transparent;color:var(--text,#18242a);font-size:.81rem;font-weight:650;line-height:1;box-shadow:none}
+.ha button.ct-day{cursor:pointer}
+.ha button.ct-day:hover{border-color:var(--primary,#006d89);filter:brightness(.97)}
+.ha .ct-day--continuo{background:#c7efdd;color:#125c40;border-color:#9bddbe}
+.ha .ct-day--parcial{background:#ffebad;color:#795000;border-color:#f7d78a}
+.ha .ct-day--corte{background:#fbd0ce;color:#9a2925;border-color:#efb0ac}
+.ha .ct-day--none{color:var(--text-soft,#687680)}
+.ha .ct-day--today{outline:2px solid var(--primary,#00769a);outline-offset:-2px}
+.ha .ct-day--selected{box-shadow:inset 0 0 0 2px var(--primary,#00769a)}
+.ct-grid--mini{gap:3px}
+.ct-grid--mini .ct-day{border-radius:8px;font-size:.78rem}
+.ct-legend{display:flex;flex-wrap:wrap;gap:8px 13px;margin-top:15px;color:var(--text-soft,#657680);font-size:.7rem}
+.ct-legend span{display:flex;align-items:center;gap:5px;white-space:nowrap}
+.ct-legend__dot{display:inline-block;width:9px;height:9px;border-radius:50%;border:1px solid rgba(0,0,0,.12)}
+.ct-legend__dot--continuo{background:#4ab98a}.ct-legend__dot--parcial{background:#efba46}.ct-legend__dot--corte{background:#e97770}.ct-legend__dot--none{background:#a4afb5}
+.ct-preview__foot{display:flex;align-items:center;justify-content:center;gap:8px;border-top:1px solid var(--border,#d3e0e6);margin-top:15px;padding-top:12px;color:var(--primary,#006d89);font-size:.78rem;font-weight:750;text-align:center}
+.ct-info{display:grid;gap:11px;flex:1 1 250px;max-width:410px}
+.ct-info__eyebrow{font-size:.7rem;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:var(--primary,#006d89)}
+.ct-info h3{font-size:1.1rem}.ct-info p{font-size:.87rem;line-height:1.55;color:var(--text-soft,#60727b)}
+.ct-info__stats{display:flex;align-items:center;gap:12px;padding:12px 14px;background:var(--surface-low,#f1f5f7);border:1px solid var(--border,#d3e0e6);border-radius:12px}
+.ct-info__stats strong{font-size:1.6rem;color:var(--primary,#006d89)}.ct-info__stats span{font-size:.82rem}
+.ct-info .ct-info__note{font-size:.78rem}.ct-info .ct-info__source{font-size:.72rem}
+.ct-help{font-size:.86rem;color:var(--text-soft,#60727b)}.ct-error{background:#fff0eb;color:#912b22;padding:11px 13px;border-radius:10px;font-size:.85rem}
+.ct-notices-head h3{font-size:1rem}.ct-notices-head span{font-size:.79rem;color:var(--text-soft,#60727b)}
+.ct-notices{display:grid;gap:10px;max-height:230px;overflow:auto}.ct-notices article{background:var(--surface-low,#f5f7f8);border:1px solid var(--border,#d3e0e6);border-radius:12px;padding:12px}.ct-notices article p{font-size:.83rem;margin:6px 0}.ct-notices article small{font-size:.7rem;color:var(--text-soft,#60727b)}
+.ct-sector-state{font-size:.84rem}.ha button.ct-toast{position:fixed;z-index:9999;bottom:18px;right:18px;width:min(365px,calc(100vw - 36px));background:#066b86;color:white;border-radius:12px;padding:14px 16px;box-shadow:0 8px 30px #0003;text-align:left}
+.ct-overlay{position:fixed;inset:0;z-index:9500;display:flex;align-items:center;justify-content:center;padding:16px;background:rgba(8,18,28,.62);backdrop-filter:blur(4px)}
+.ct-dialog{width:min(100%,555px);max-height:calc(100dvh - 32px);display:flex;flex-direction:column;min-width:0;overflow:hidden;background:var(--surface,#fff);color:var(--text,#18242a);border:1px solid var(--border,#d3e0e6);border-radius:22px;box-shadow:0 25px 80px #0005}
+.ct-dialog__header{display:flex;align-items:center;justify-content:space-between;gap:15px;padding:17px 22px;border-bottom:1px solid var(--border,#d3e0e6)}
+.ct-dialog__header h2{font-size:1.3rem}.ct-dialog__eyebrow{display:block;font-size:.71rem;color:var(--text-soft,#60727b);margin-bottom:4px}
+.ha button.ct-dialog__close{display:grid;place-items:center;flex-shrink:0;width:37px;height:37px;border:1px solid var(--border,#d3e0e6);border-radius:12px;background:var(--surface-low,#f0f5f6);color:var(--text,#18242a);font-size:1.6rem;line-height:1}
+.ct-dialog__body{padding:clamp(16px,3vw,25px);overflow:auto;min-height:0}
+.ct-month-nav{display:flex;align-items:center;justify-content:space-between;gap:9px;margin:0 0 17px}
+.ct-month-nav strong{font-size:1rem;text-transform:capitalize;text-align:center}
+.ha .ct-month-nav button{display:grid;place-items:center;width:39px;height:39px;padding:0;border:1px solid var(--border,#d3e0e6);border-radius:12px;background:var(--surface-low,#f0f5f6);color:var(--text,#18242a);font-size:1.55rem}
+.ct-grid--large{gap:7px}
+.ha .ct-grid--large .ct-day{font-size:.91rem;border-radius:12px}
+.ct-detail{display:grid;gap:7px;padding:15px 16px;margin-top:18px;border:1px solid var(--border,#d3e0e6);border-left:4px solid #abb8bf;border-radius:13px;background:var(--surface-low,#f4f7f8)}
+.ct-detail--continuo{border-left-color:#3cbd87}.ct-detail--parcial{border-left-color:#edb438}.ct-detail--corte{border-left-color:#e66b65}
+.ct-detail__date{text-transform:capitalize;color:var(--text-soft,#60727b);font-size:.77rem}
+.ct-detail .ct-detail__heading{font-size:1.01rem;color:var(--text,#18242a)}.ct-detail p{font-size:.82rem;line-height:1.5}.ct-dialog__source{font-size:.7rem;color:var(--text-soft,#60727b);margin-top:13px!important}
+@media(max-width:680px){.ct-main{justify-content:center}.ct-info{max-width:none;flex-basis:100%}.ha button.ct-preview{width:min(100%,330px);flex-basis:min(100%,330px)}.ct-dialog{max-height:calc(100dvh - 18px)}.ct-overlay{padding:9px}.ct-dialog__header{padding:13px 15px}.ct-dialog__body{padding:13px}.ct-grid--large{gap:3px}.ha .ct-grid--large .ct-day{border-radius:9px;font-size:.84rem}.ct-panel{gap:14px}}
+@media(max-width:380px){.ct-grid--mini{gap:2px}.ct-grid--large{gap:2px}.ct-dialog__header h2{font-size:1.08rem}.ct-legend{gap:6px 10px}}
+@media(prefers-reduced-motion:reduce){.ha button.ct-preview{transition:none}}
+
+/* ARCA 2.0: calendario compacto a la izquierda del mapa. */
+.ha .ha-overview__calendar .ct-panel {
+  height: 100%; margin: 0; padding: clamp(14px, 1.6vw, 22px);
+  align-content: start; gap: 14px;
+}
+.ha .ha-overview__calendar .ct-panel__head h2 { font-size: 1.05rem !important; }
+.ha .ha-overview__calendar .ct-panel__head p { font-size: .75rem; }
+.ha .ha-overview__calendar button.ct-preview {
+  width: min(100%, 330px); max-width: 100%; flex: none; margin-inline: auto;
+  padding: 12px; border-radius: 15px;
+}
+.ha .ha-overview__calendar .ct-legend { gap: 6px 9px; font-size: .65rem; }
+.ha .ha-overview__calendar .ct-notices-head h3 { font-size: .9rem; }
+.ha .ha-overview__calendar .ct-notices { max-height: 120px; }
+.ct-inline-summary { text-align:center; color:var(--text-soft,#657680); font-size:.75rem; }
+/* Modal en dos columnas solo en pantallas grandes. */
+.ct-dialog { width: min(100%, 900px); }
+.ct-modal-layout { display:grid; grid-template-columns:minmax(0,1.15fr) minmax(240px,.85fr); gap:24px; align-items:start; }
+.ct-modal-layout__calendar, .ct-modal-layout__summary { min-width:0; }
+.ct-modal-layout__summary { display:grid; gap:14px; }
+.ct-modal-layout__summary h3 { font-size:1.2rem; }
+.ct-month-count { display:flex; align-items:center; gap:10px; padding:12px; background:var(--surface-low,#f2f6f7); border:1px solid var(--border,#d3e0e6); border-radius:14px; }
+.ct-month-count strong { font-size:2.2rem; color:var(--primary,#006d89); line-height:1; }
+.ct-month-count span { font-size:.83rem; }
+.ct-status-totals { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:8px; }
+.ct-total { display:grid; gap:4px; min-width:0; border-radius:11px; padding:10px 7px; text-align:center; }
+.ct-total b { font-size:1.45rem; line-height:1.1; }
+.ct-total span { font-size:.69rem; font-weight:650; }
+.ct-total--continuo { background:#d7f4e5; color:#155e44; }
+.ct-total--parcial { background:#fff0c3; color:#795000; }
+.ct-total--corte { background:#ffe0dd; color:#972b28; }
+.ct-modal-layout__summary .ct-detail { margin:0; }
+@media(max-width:700px) {
+  .ct-modal-layout { grid-template-columns:minmax(0,1fr); gap:16px; }
+  .ct-dialog { max-width:540px; }
+  .ct-modal-layout__summary { gap:10px; }
+  .ct-status-totals { gap:6px; }
+  .ct-total { padding:8px 5px; }
+}

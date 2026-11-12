@@ -14,7 +14,8 @@ export function isCitizenProfileComplete(profile) {
     && ZONES.includes(profile.zone)
     && /^\d{5}$/.test(String(profile.zipCode || ''))
     && /^\d{10,13}$/.test(phone)
-    && typeof profile.receiveAlerts === 'boolean';
+    && typeof profile.receiveAlerts === 'boolean'
+    && typeof profile.sectorId === 'string' && profile.sectorId.length > 0;
 }
 
 export function subscribeCitizenProfile(onChange, onError) {
@@ -34,9 +35,10 @@ export async function saveCitizenProfile(values, photoFile = null, currentPhoto 
   const zipCode = String(values.zipCode || '').trim();
   const phone = String(values.phone || '').replace(/\D/g, '');
   const receiveAlerts = Boolean(values.receiveAlerts);
-  const proposed = { address, zone, zipCode, phone, receiveAlerts };
+  const sectorId = String(values.sectorId || '').trim();
+  const proposed = { address, zone, zipCode, phone, receiveAlerts, sectorId };
   if (!isCitizenProfileComplete(proposed)) {
-    throw new Error('Completa dirección (8-180 caracteres), zona, código postal y teléfono de 10 a 13 dígitos.');
+    throw new Error('Completa dirección, zona, sector de agua, código postal y teléfono.');
   }
   const fotoBase64 = photoFile ? await compressPhoto(photoFile) : (currentPhoto || null);
   if (fotoBase64 && (fotoBase64.length > 170000 || !fotoBase64.startsWith('data:image/webp;base64,'))) {

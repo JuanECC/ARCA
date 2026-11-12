@@ -17,10 +17,12 @@ import { useEffect, useState } from 'react';
 import { CircleMarker, MapContainer, TileLayer, Popup, Tooltip, useMap, useMapEvents } from 'react-leaflet';
 import { auth } from '../auth/firebase';
 import CitizenProfile from './CitizenProfile';
+import CitizenTandeo from './CitizenTandeo';
 import { isCitizenProfileComplete, saveCitizenProfile, subscribeCitizenProfile } from './profileService';
 import { REPORT_TYPES, subscribeReports, createCitizenReport, getCurrentLocation } from './reportsService';
 import 'leaflet/dist/leaflet.css';
 import './CitizenReports.css';
+import './CitizenLayout.css';
 
 /* =========================================================================
  * 1. DATOS DE EJEMPLO (se reemplazan por los de la base de datos)
@@ -636,15 +638,25 @@ export default function CitizenReports({ onLogout, profile: account }) {
       {loading && <p className="ha-soft">Cargando reportes...</p>}
       {error && <p role="alert" className="ha-report-error">{error}</p>}
       {statsOpen && <KpiCards colonias={[]} reports={reports}/>}
-      <div className="ha-dashboard__grid"><div className="ha-dashboard__column">
-        <RiskMap theme={theme} colonias={[]} fugas={[]} drenajes={[]} reports={reports} focus={focus} onSelect={setFocus}/>
-        <Evidence evidencias={evidencias}/>
-      </div><div className="ha-dashboard__column">
-        <Card icon="assignment" title="Mis reportes" aside={<Badge tone="primary">{mine.length}</Badge>}>
-          {mine.length === 0 ? <p className="ha-soft">Todavía no has enviado reportes.</p> : <ul className="ha-my-reports">{mine.map(r => <li key={r.id}><strong>{r.titulo}</strong><span className="ha-soft"> · {r.autorNombre || 'Ciudadano (reporte anterior)'}</span><Badge tone={r.estado === 'resuelto' ? 'success' : 'warning'}>{r.estado}</Badge><p className="ha-soft">{r.creadoEn?.toDate?.().toLocaleString('es-MX') || 'Reciente'}</p></li>)}</ul>}
-        </Card>
-        <Forecast hourly={weather.hourly}/>
-      </div></div>
+      <div className="ha-overview">
+        <div className="ha-overview__calendar">
+          <CitizenTandeo profile={citizenProfile} />
+        </div>
+        <div className="ha-overview__map">
+          <RiskMap theme={theme} colonias={[]} fugas={[]} drenajes={[]} reports={reports} focus={focus} onSelect={setFocus}/>
+        </div>
+        <div className="ha-overview__reports">
+          <Card icon="assignment" title="Mis reportes" aside={<Badge tone="primary">{mine.length}</Badge>}>
+            {mine.length === 0 ? <p className="ha-soft">Todavía no has enviado reportes.</p> : <ul className="ha-my-reports">{mine.map(r => <li key={r.id}><strong>{r.titulo}</strong><span className="ha-soft"> · {r.autorNombre || 'Ciudadano (reporte anterior)'}</span><Badge tone={r.estado === 'resuelto' ? 'success' : 'warning'}>{r.estado}</Badge><p className="ha-soft">{r.creadoEn?.toDate?.().toLocaleString('es-MX') || 'Reciente'}</p></li>)}</ul>}
+          </Card>
+        </div>
+        <div className="ha-overview__forecast">
+          <Forecast hourly={weather.hourly}/>
+        </div>
+        <div className="ha-overview__evidence">
+          <Evidence evidencias={evidencias}/>
+        </div>
+      </div>
     </main>
     {profileOpen && <CitizenProfile account={account} profile={citizenProfile} onClose={() => setProfileOpen(false)} onSave={saveCitizenProfile}/>}
     <Toasts toasts={toasts} onDismiss={dismiss}/>
