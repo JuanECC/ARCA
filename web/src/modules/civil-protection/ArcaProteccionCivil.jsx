@@ -20,6 +20,7 @@ import 'leaflet/dist/leaflet.css';
 import './ArcaProteccionCivil.css';
 import ArcaActivityFeed from './ArcaActivityFeed';
 import { watchArcaActivity } from './proteccionCivilService';
+import NotificationBell from '../notifications/NotificationBell';
 
 /* ======================================================================
  * FECHAS
@@ -309,6 +310,7 @@ function Header({ onLogout }) {
         <a className="header__emergency" href="tel:911">
           <Icon name="emergency" size={16} /> Emergencias 911
         </a>
+        <NotificationBell role="civil-protection" />
         <button className="header__theme" onClick={toggleTheme} aria-label="Cambiar tema">
           <Icon name={theme === 'dark' ? 'light_mode' : 'dark_mode'} />
         </button>

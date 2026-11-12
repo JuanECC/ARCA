@@ -17,6 +17,7 @@ import {
   watchCrewSectors, watchAssignedJobs, watchSectorCrews, watchCrewCitizenReports,
   saveCrewMember, deleteCrewMember, startCrewJob, finishCrewJob, assignCitizenJob,
 } from './cuadrillasService';
+import NotificationBell from '../notifications/NotificationBell';
 
 
 /* ======================================================================
@@ -290,6 +291,7 @@ function Header({ onLogout }) {
       </div>
 
       <div className="crew-header-actions">
+        <NotificationBell role="maintenance-crew" />
         <button type="button" className="header__theme" onClick={toggleTheme} aria-label="Cambiar tema">
           <Icon name={theme === 'dark' ? 'light_mode' : 'dark_mode'} />
         </button>

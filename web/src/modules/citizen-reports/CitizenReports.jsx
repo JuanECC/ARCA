@@ -21,6 +21,7 @@ import { collection, getFirestore, onSnapshot, query, where } from 'firebase/fir
 import CitizenProfile from './CitizenProfile';
 import CitizenTandeo from './CitizenTandeo';
 import { isCitizenProfileComplete, saveCitizenProfile, subscribeCitizenProfile } from './profileService';
+import NotificationBell from '../notifications/NotificationBell';
 import { REPORT_TYPES, subscribeReports, createCitizenReport, getCurrentLocation } from './reportsService';
 import 'leaflet/dist/leaflet.css';
 import './CitizenReports.css';
@@ -211,7 +212,7 @@ function Logo() {
  * ========================================================================= */
 
 // Barra superior: marca, clima actual, 911 y botón de tema
-function Header({ weather, theme, onToggleTheme, onLogout, onOpenProfile, profilePhoto }) {
+function Header({ weather, theme, onToggleTheme, onLogout, onOpenProfile, profilePhoto, sectorId }) {
   return (
     <header className="ha-header">
       <div className="ha-header__brand">
@@ -235,6 +236,7 @@ function Header({ weather, theme, onToggleTheme, onLogout, onOpenProfile, profil
         <a className="ha-header__emergency" href="tel:911">
           <Icon name="emergency" size={16} /> 911
         </a>
+        <NotificationBell role="citizen" sectorId={sectorId} />
         <button className="ha-header__theme" onClick={onToggleTheme} aria-label="Cambiar tema">
           <Icon name={theme === 'dark' ? 'light_mode' : 'dark_mode'} />
         </button>
@@ -688,7 +690,7 @@ export default function CitizenReports({ onLogout, profile: account }) {
     id: r.id, title: r.titulo, detail: reportMapStatus(r.estado).label,
   }));
   return <div className="ha" data-theme={theme}>
-    <Header weather={weather} theme={theme} onToggleTheme={toggleTheme} onLogout={onLogout} onOpenProfile={() => setProfileOpen(true)} profilePhoto={citizenProfile?.fotoBase64}/>
+    <Header weather={weather} theme={theme} onToggleTheme={toggleTheme} onLogout={onLogout} onOpenProfile={() => setProfileOpen(true)} profilePhoto={citizenProfile?.fotoBase64} sectorId={citizenProfile?.sectorId}/>
     <main className="ha-dashboard">
       <div className="ha-dashboard__intro"><div><Badge tone="primary" live>Reportes ciudadanos · Firebase</Badge><h1>Monitor Hídrico Metropolitano <span>| Veracruz – Boca del Río</span></h1><p className="ha-soft">Incidencias ciudadanas y seguimiento geográfico.</p></div>
       <button type="button" className="ha-btn" onClick={beginReport} disabled={profileLoading}><Icon name="add_location_alt" size={18}/>{formOpen ? 'Cerrar formulario' : 'Generar reporte'}</button></div>

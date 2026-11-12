@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
+import NotificationBell from '../notifications/NotificationBell';
 import { MapContainer, TileLayer, CircleMarker, useMapEvents } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
 import './ArcaTandeoAdmin.css';
@@ -300,6 +301,7 @@ export default function WaterOperationsArca({ profile, onLogout }) {
       </div>
       <div className="wo-head-actions">
         <span className="wo-department">Departamento de Operaciones</span>
+        <NotificationBell role="water-operator" />
         <button className="wo-theme-toggle" type="button" aria-label={theme === 'light' ? 'Activar modo oscuro' : 'Activar modo claro'} title={theme === 'light' ? 'Modo oscuro' : 'Modo claro'} onClick={() => setTheme(theme === 'light' ? 'dark' : 'light')}>{theme === 'light' ? '☾' : '☀'}</button>
         {typeof onLogout === 'function' && <button className="wo-logout" type="button" onClick={onLogout}><span aria-hidden="true">⇥</span> Salir</button>}
       </div>

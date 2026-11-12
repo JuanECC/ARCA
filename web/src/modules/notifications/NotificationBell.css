@@ -1,0 +1,292 @@
+/*
+ * ARCA · Notificaciones. Usa las variables de tema del panel donde se coloca
+ * (claro y oscuro). Lista y avisos van en posición fija: no mueven la página.
+ * Los selectores llevan doble clase para no heredar el reinicio de botones de cada panel.
+ */
+
+.arca-notif {
+  position: relative;
+  display: inline-flex;
+  flex-shrink: 0;
+}
+
+/* Capa donde se dibujan la lista y los avisos: no ocupa espacio en la página */
+.arca-notif.arca-notif--layer {
+  display: contents;
+}
+
+/* Campana: mismo tamaño que el botón de tema */
+.arca-notif .arca-notif__bell {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 2.25rem;
+  height: 2.25rem;
+  padding: 0;
+  border-radius: 50%;
+  border: 1px solid var(--border, rgba(0, 102, 134, 0.14));
+  background: var(--surface-low, #f2f4f5);
+  color: var(--text-soft, #43505a);
+  cursor: pointer;
+}
+
+.arca-notif .arca-notif__bell:hover,
+.arca-notif .arca-notif__bell[aria-expanded='true'] {
+  color: var(--primary, #006686);
+}
+
+.arca-notif .material-symbols-outlined {
+  font-size: 1.25rem;
+  line-height: 1;
+}
+
+/* Contador encima de la campana: no cambia el tamaño del encabezado */
+.arca-notif__badge {
+  position: absolute;
+  top: -0.25rem;
+  right: -0.25rem;
+  min-width: 1.125rem;
+  height: 1.125rem;
+  padding: 0 0.25rem;
+  border-radius: 1rem;
+  background: var(--risk-high, #d32f2f);
+  color: #fff;
+  font-size: 0.625rem;
+  font-weight: 700;
+  line-height: 1.125rem;
+  text-align: center;
+}
+
+/* Tonos (usan los colores del tema del panel) */
+.arca-notif--primary { --notif: var(--primary, #006686); --notif-bg: var(--primary-bg, #c4ebff); --notif-on: var(--on-primary-bg, #004d66); }
+.arca-notif--success { --notif: var(--success, #1d6b4f); --notif-bg: var(--success-bg, #c9f0dc); --notif-on: var(--on-success-bg, #0b4a33); }
+.arca-notif--warning { --notif: var(--warning, #8a5300); --notif-bg: var(--warning-bg, #ffe3b0); --notif-on: var(--on-warning-bg, #5c3700); }
+.arca-notif--error { --notif: var(--error, #ba1a1a); --notif-bg: var(--error-bg, #ffdad6); --notif-on: var(--on-error-bg, #8c0009); }
+
+/* ---------- Lista flotante ---------- */
+.arca-notif__backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 1190;
+}
+
+.arca-notif__panel {
+  position: fixed;
+  z-index: 1200;
+  top: calc(var(--header-h, 4.5rem) + 0.5rem);
+  right: 1rem;
+  width: min(24rem, calc(100vw - 2rem));
+  max-height: min(70vh, 32rem);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  border-radius: var(--radius-lg, 1.25rem);
+  background: var(--surface, #fff);
+  border: 1px solid var(--border, rgba(0, 102, 134, 0.14));
+  box-shadow: var(--shadow, 0 8px 24px -10px rgba(16, 40, 56, 0.22));
+  color: var(--text, #182024);
+  text-align: left;
+  animation: arca-notif-in 0.18s ease-out;
+}
+
+.arca-notif__head {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.875rem 0.75rem 0.75rem 1rem;
+  border-bottom: 1px solid var(--border, rgba(0, 102, 134, 0.14));
+}
+
+.arca-notif__head strong {
+  flex: 1;
+  font-family: var(--font-title, inherit);
+  font-size: 0.9375rem;
+}
+
+.arca-notif .arca-notif__mark {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.25rem 0.5rem;
+  border: 0;
+  border-radius: 0.5rem;
+  background: transparent;
+  color: var(--primary, #006686);
+  font: inherit;
+  font-size: 0.75rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.arca-notif .arca-notif__mark .material-symbols-outlined {
+  font-size: 1rem;
+}
+
+.arca-notif .arca-notif__close {
+  display: grid;
+  place-items: center;
+  width: 1.75rem;
+  height: 1.75rem;
+  flex-shrink: 0;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+  color: var(--text-soft, #43505a);
+  cursor: pointer;
+}
+
+.arca-notif .arca-notif__close .material-symbols-outlined {
+  font-size: 1.125rem;
+}
+
+.arca-notif__list {
+  list-style: none;
+  margin: 0;
+  padding: 0.5rem;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.arca-notif .arca-notif__item {
+  width: 100%;
+  display: flex;
+  align-items: flex-start;
+  gap: 0.625rem;
+  padding: 0.625rem;
+  border: 0;
+  border-radius: var(--radius, 0.75rem);
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.arca-notif .arca-notif__item:hover {
+  background: var(--surface-low, #f2f4f5);
+}
+
+.arca-notif .arca-notif__item.is-unread {
+  background: var(--surface-low, #f2f4f5);
+  box-shadow: inset 3px 0 0 var(--notif);
+}
+
+.arca-notif__icon {
+  display: grid;
+  place-items: center;
+  width: 2rem;
+  height: 2rem;
+  flex-shrink: 0;
+  border-radius: 0.625rem;
+  background: var(--notif-bg);
+  color: var(--notif-on);
+}
+
+.arca-notif__icon .material-symbols-outlined {
+  font-size: 1.125rem;
+}
+
+.arca-notif__text {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.125rem;
+  font-size: 0.8125rem;
+  line-height: 1.4;
+}
+
+.arca-notif__text span {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  color: var(--text-soft, #43505a);
+  font-size: 0.75rem;
+}
+
+.arca-notif__text small {
+  color: var(--text-soft, #43505a);
+  font-size: 0.6875rem;
+}
+
+.arca-notif__empty {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  margin: 0;
+  padding: 2rem 1rem;
+  color: var(--text-soft, #43505a);
+  font-size: 0.8125rem;
+}
+
+/* ---------- Avisos flotantes de notificaciones nuevas ---------- */
+.arca-notif__toasts {
+  position: fixed;
+  z-index: 1150;
+  top: calc(var(--header-h, 4.5rem) + 0.5rem);
+  right: 1rem;
+  width: min(22rem, calc(100vw - 2rem));
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  pointer-events: none;
+}
+
+.arca-notif__toast {
+  pointer-events: auto;
+  display: flex;
+  align-items: flex-start;
+  gap: 0.625rem;
+  padding: 0.75rem;
+  border-radius: var(--radius, 0.75rem);
+  background: var(--surface, #fff);
+  border: 1px solid var(--border, rgba(0, 102, 134, 0.14));
+  border-left: 3px solid var(--notif);
+  box-shadow: var(--shadow, 0 8px 24px -10px rgba(16, 40, 56, 0.22));
+  color: var(--text, #182024);
+  text-align: left;
+  animation: arca-notif-in 0.25s ease-out;
+}
+
+@keyframes arca-notif-in {
+  from {
+    opacity: 0;
+    transform: translateY(-6px);
+  }
+}
+
+/* ---------- Celular: la lista sube desde abajo ---------- */
+@media (max-width: 639px) {
+  .arca-notif__backdrop {
+    background: rgba(5, 12, 16, 0.45);
+  }
+
+  .arca-notif__panel {
+    top: auto;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    max-height: 70vh;
+    border-radius: var(--radius-lg, 1.25rem) var(--radius-lg, 1.25rem) 0 0;
+    padding-bottom: env(safe-area-inset-bottom);
+    animation-name: arca-notif-up;
+  }
+
+  .arca-notif__toasts {
+    right: 0.75rem;
+    left: 0.75rem;
+    width: auto;
+  }
+}
+
+@keyframes arca-notif-up {
+  from {
+    transform: translateY(100%);
+  }
+}
