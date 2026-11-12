@@ -126,6 +126,7 @@
      title: heading, message: body, level: alert.level,
      reporter: 'Departamento de Protección Civil',
      publishedBy: user.uid, reportId: alert.id, position, creadoEn: serverTimestamp(),
+     ...(alert.photos?.[0] ? { fotoBase64: alert.photos[0] } : {}),
    });
    await batch.commit();
  }

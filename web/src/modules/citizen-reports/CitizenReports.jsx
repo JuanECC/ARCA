@@ -385,6 +385,8 @@ function RiskMap({ theme, colonias, fugas, drenajes, reports, civilAlerts = [], 
                     <strong>{controlled ? '✅ Riesgo controlado por Protección Civil' : '🚨 Alerta oficial de Protección Civil'}</strong>
                     <p><b>{a.title}</b></p>
                     <p>{a.message}</p>
+                    {a.fotoBase64 && <img src={a.fotoBase64} alt="Evidencia publicada por Protección Civil"
+                      style={{ width: '100%', maxHeight: 180, objectFit: 'contain', borderRadius: 8 }} />}
                     <p><b>Sector afectado:</b> {sector}</p>
                     <p><b>Publicado por:</b> {a.reporter || 'Departamento de Protección Civil'}</p>
                     <p><b>Estado:</b> {controlled ? 'Controlado · Publicación vigente' : 'Alerta activa'}</p>

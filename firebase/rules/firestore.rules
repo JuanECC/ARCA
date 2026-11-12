@@ -1037,7 +1037,7 @@ service cloud.firestore {
       allow create: if isCivilProtection()
         && request.resource.data.keys().hasOnly([
           'kind', 'audience', 'sectorId', 'title', 'message',
-          'level', 'reporter', 'publishedBy', 'reportId', 'position', 'creadoEn'
+          'level', 'reporter', 'publishedBy', 'reportId', 'position', 'creadoEn', 'fotoBase64'
         ])
         && request.resource.data.keys().hasAll([
           'kind', 'audience', 'sectorId', 'title', 'message',
@@ -1059,6 +1059,10 @@ service cloud.firestore {
         && request.resource.data.message.size() >= 10
         && request.resource.data.message.size() <= 600
         && request.resource.data.reportId is string
+        && (!('fotoBase64' in request.resource.data)
+          || request.resource.data.fotoBase64 == getAfter(
+            /databases/$(database)/documents/systemReports/$(request.resource.data.reportId)
+          ).data.photos[0])
         && validPoint(request.resource.data.position)
         && request.resource.data.creadoEn == request.time
         // En el lote, el reporte asociado queda publicado.
