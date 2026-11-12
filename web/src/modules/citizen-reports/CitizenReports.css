@@ -955,3 +955,17 @@
  .ha .ha-header__tools { gap:.25rem; }
  .ha .ha-header__emergency { padding:.35rem; }
 }
+
+/* Perfil junto al tema y acceso responsive */
+.ha .ha-header__profile { display:inline-flex; align-items:center; justify-content:center; gap:.4rem; min-height:39px; padding:.45rem .7rem; border:1px solid var(--border); border-radius:var(--radius); background:var(--surface); color:var(--text); font:inherit; font-weight:600; white-space:nowrap; }
+.ha .ha-header__profile:hover { background:var(--surface-high); }
+.ha .ha-header__profile img { width:25px; height:25px; border-radius:50%; object-fit:cover; }
+.ha .ha-profile-gate { display:flex; align-items:center; flex-wrap:wrap; gap:.65rem; background:var(--surface-low); border:1px solid var(--border); border-radius:var(--radius); padding:.85rem 1rem; color:var(--text); font-size:.85rem; }
+.ha .ha-profile-gate span { flex:1 1 250px; }
+.ha .ha-profile-gate button { border-radius:.6rem; padding:.55rem .8rem; background:var(--primary); color:var(--on-primary); font-weight:700; }
+@media(max-width:600px) {
+ .ha .ha-header__tools { display:flex; align-items:center; flex-wrap:wrap; justify-content:flex-end; }
+ .ha .ha-header__profile { min-width:38px; padding:.4rem; }
+ .ha .ha-header__profile span:not(.material-symbols-outlined) { display:none; }
+ .ha .ha-header__profile img { width:24px; height:24px; }
+}

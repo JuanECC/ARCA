@@ -10,7 +10,8 @@ service cloud.firestore {
 
     function isAdmin() {
       return request.auth != null
-        && request.auth.uid == 'lJ9W2QteobbETqMoPBonAFfzMgh1';
+        && request.auth.uid ==
+          'lJ9W2QteobbETqMoPBonAFfzMgh1';
     }
 
     function validProfile(uid) {
@@ -97,22 +98,139 @@ service cloud.firestore {
     }
 
     // ==========================================
+    // VALIDACIÓN: CONFIGURACIÓN CIUDADANA
+    // ==========================================
+
+    function validCitizenSettings() {
+      let p = request.resource.data;
+
+      return p.keys().hasOnly([
+          'address',
+          'zone',
+          'zipCode',
+          'phone',
+          'receiveAlerts',
+          'fotoBase64',
+          'actualizadoEn'
+        ])
+        && p.keys().hasAll([
+          'address',
+          'zone',
+          'zipCode',
+          'phone',
+          'receiveAlerts',
+          'fotoBase64',
+          'actualizadoEn'
+        ])
+
+        // Dirección.
+        && p.address is string
+        && p.address.size() >= 8
+        && p.address.size() <= 180
+
+        // Zona hidrográfica.
+        && p.zone in [
+          'centro',
+          'norte',
+          'sur',
+          'poniente',
+          'rural'
+        ]
+
+        // Código postal de cinco dígitos.
+        && p.zipCode is string
+        && p.zipCode.matches('[0-9]{5}')
+
+        // Teléfono normalizado.
+        && p.phone is string
+        && p.phone.matches('[0-9]{10,13}')
+
+        // Preferencia de alertas.
+        && p.receiveAlerts is bool
+
+        // Fotografía opcional en Base64 WebP.
+        && (
+          p.fotoBase64 == null
+          || (
+            p.fotoBase64 is string
+            && p.fotoBase64.size() <= 170000
+            && p.fotoBase64.matches(
+              'data:image/webp;base64,[A-Za-z0-9+/=]+'
+            )
+          )
+        )
+
+        // Fecha generada por Firebase.
+        && p.actualizadoEn == request.time;
+    }
+
+    // ==========================================
+    // VERIFICACIÓN: PERFIL COMPLETO
+    // ==========================================
+
+    function configuredCitizen(uid) {
+      return exists(
+          /databases/$(database)/documents/usuarios/$(uid)
+        )
+
+        // La cuenta debe ser ciudadana.
+        && get(
+          /databases/$(database)/documents/usuarios/$(uid)
+        ).data.role == 'citizen'
+
+        // Debe existir el perfil ampliado.
+        && exists(
+          /databases/$(database)/documents/usuarios/$(uid)/configuracion/perfil
+        )
+
+        // Dirección registrada.
+        && get(
+          /databases/$(database)/documents/usuarios/$(uid)/configuracion/perfil
+        ).data.address is string
+
+        && get(
+          /databases/$(database)/documents/usuarios/$(uid)/configuracion/perfil
+        ).data.address.size() >= 8
+
+        // Zona válida.
+        && get(
+          /databases/$(database)/documents/usuarios/$(uid)/configuracion/perfil
+        ).data.zone in [
+          'centro',
+          'norte',
+          'sur',
+          'poniente',
+          'rural'
+        ]
+
+        // Código postal.
+        && get(
+          /databases/$(database)/documents/usuarios/$(uid)/configuracion/perfil
+        ).data.zipCode.matches('[0-9]{5}')
+
+        // Teléfono.
+        && get(
+          /databases/$(database)/documents/usuarios/$(uid)/configuracion/perfil
+        ).data.phone.matches('[0-9]{10,13}');
+    }
+
+    // ==========================================
     // COLECCIÓN: USUARIOS
     // ==========================================
 
     match /usuarios/{uid} {
 
-      // Leer el perfil propio o acceder como admin.
+      // Consultar el perfil principal.
       allow get: if request.auth != null
         && (
           request.auth.uid == uid
           || isAdmin()
         );
 
-      // Solo el administrador puede listar usuarios.
+      // Solo administración puede listar cuentas.
       allow list: if isAdmin();
 
-      // Registro de ciudadanos y altas autorizadas.
+      // Registro ciudadano y altas autorizadas.
       allow create: if request.auth != null
         && validProfile(uid)
         && (
@@ -128,27 +246,59 @@ service cloud.firestore {
           )
         );
 
-      // No permitir modificaciones de roles.
+      // Proteger roles e identidad.
       allow update: if false;
       allow delete: if false;
+
+      // ========================================
+      // SUBCOLECCIÓN: CONFIGURACION
+      // DOCUMENTO: PERFIL
+      // ========================================
+
+      match /configuracion/{configId} {
+
+        // Cada ciudadano consulta su configuración.
+        allow get: if request.auth != null
+          && request.auth.uid == uid
+          && configId == 'perfil';
+
+        // No permitir listar configuraciones.
+        allow list: if false;
+
+        // Guardar o actualizar el perfil propio.
+        allow create, update: if request.auth != null
+          && request.auth.uid == uid
+          && configId == 'perfil'
+          && get(
+            /databases/$(database)/documents/usuarios/$(uid)
+          ).data.role == 'citizen'
+          && validCitizenSettings();
+
+        // Impedir eliminar el perfil.
+        allow delete: if false;
+      }
     }
 
     // ==========================================
     // COLECCIÓN: REPORTES CIUDADANOS
-    // FOTOGRAFÍAS EN BASE64 / FIRESTORE
     // ==========================================
 
     match /reportes/{reporteId} {
 
-      // Consultar reportes con sesión iniciada.
+      // Cualquier usuario autenticado puede
+      // consultar reportes y verlos en el mapa.
       allow read: if request.auth != null;
 
-      // Crear reportes.
+      // Crear reportes únicamente con perfil completo.
       allow create: if request.auth != null
+
+        // Verificar configuración ciudadana.
+        && configuredCitizen(request.auth.uid)
 
         // Campos permitidos.
         && request.resource.data.keys().hasOnly([
           'usuarioUid',
+          'autorNombre',
           'titulo',
           'descripcion',
           'tipo',
@@ -163,6 +313,7 @@ service cloud.firestore {
         // Campos obligatorios.
         && request.resource.data.keys().hasAll([
           'usuarioUid',
+          'autorNombre',
           'titulo',
           'descripcion',
           'tipo',
@@ -174,9 +325,16 @@ service cloud.firestore {
           'creadoEn'
         ])
 
-        // El reporte debe pertenecer al usuario.
+        // El reporte pertenece al usuario.
         && request.resource.data.usuarioUid ==
           request.auth.uid
+
+        // Nombre real de la cuenta registrada.
+        && request.resource.data.autorNombre is string
+        && request.resource.data.autorNombre ==
+          get(
+            /databases/$(database)/documents/usuarios/$(request.auth.uid)
+          ).data.nombre
 
         // Título.
         && request.resource.data.titulo is string
@@ -199,64 +357,57 @@ service cloud.firestore {
 
         // Ubicación.
         && request.resource.data.ubicacion is map
+
         && request.resource.data.ubicacion.keys().hasOnly([
           'lat',
           'lng'
         ])
+
         && request.resource.data.ubicacion.keys().hasAll([
           'lat',
           'lng'
         ])
 
-        // Latitud.
+        // Latitud válida.
         && request.resource.data.ubicacion.lat is number
         && request.resource.data.ubicacion.lat >= -90
         && request.resource.data.ubicacion.lat <= 90
 
-        // Longitud.
+        // Longitud válida.
         && request.resource.data.ubicacion.lng is number
         && request.resource.data.ubicacion.lng >= -180
         && request.resource.data.ubicacion.lng <= 180
 
-        // Precisión del GPS.
+        // Precisión de ubicación.
         && request.resource.data.precisionMetros is number
         && request.resource.data.precisionMetros >= 0
 
-        // ======================================
-        // VALIDACIÓN DE FOTOGRAFÍA BASE64
-        // ======================================
-
-        // Se permite una fotografía opcional.
-        // Si existe, debe ser WebP en Base64.
+        // Foto del reporte opcional en Base64.
         && (
           request.resource.data.fotoBase64 == null
           || (
             request.resource.data.fotoBase64 is string
-
-            // Máximo 170,000 caracteres.
             && request.resource.data.fotoBase64.size()
               <= 170000
-
-            // Formato Data URL WebP.
             && request.resource.data.fotoBase64.matches(
               'data:image/webp;base64,[A-Za-z0-9+/=]+'
             )
           )
         )
 
-        // Estado inicial.
+        // Estado inicial obligatorio.
         && request.resource.data.estado == 'pendiente'
 
         // Prioridad inicial.
         && request.resource.data.prioridad ==
           'sin-evaluar'
 
-        // Fecha del servidor.
+        // Fecha de creación.
         && request.resource.data.creadoEn ==
           request.time;
 
-      // Evitar modificaciones y eliminaciones
-      // desde el cliente.
+      // No permitir modificar o eliminar reportes
+      // desde el navegador.
       allow update: if false;
       allow delete: if false;
     }
@@ -265,9 +416,9 @@ service cloud.firestore {
     // SEGURIDAD GENERAL
     // ==========================================
 
+    // Bloquear colecciones no autorizadas.
     match /{document=**} {
       allow read, write: if false;
     }
-
   }
 }

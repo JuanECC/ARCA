@@ -79,7 +79,7 @@ export default function App() {
         <button className="text-button" onClick={logout}>Cerrar sesión</button>
       </header>}
       {error && <p className="message error" role="alert">{error}</p>}
-      {Panel ? <Panel onLogout={logout} /> : <p>No existe un panel configurado para el rol de esta cuenta.</p>}
+      {Panel ? <Panel onLogout={logout} profile={session} /> : <p>No existe un panel configurado para el rol de esta cuenta.</p>}
     </main>
   );
 }

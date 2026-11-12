@@ -16,6 +16,8 @@
 import { useEffect, useState } from 'react';
 import { CircleMarker, MapContainer, TileLayer, Popup, Tooltip, useMap, useMapEvents } from 'react-leaflet';
 import { auth } from '../auth/firebase';
+import CitizenProfile from './CitizenProfile';
+import { isCitizenProfileComplete, saveCitizenProfile, subscribeCitizenProfile } from './profileService';
 import { REPORT_TYPES, subscribeReports, createCitizenReport, getCurrentLocation } from './reportsService';
 import 'leaflet/dist/leaflet.css';
 import './CitizenReports.css';
@@ -204,7 +206,7 @@ function Logo() {
  * ========================================================================= */
 
 // Barra superior: marca, clima actual, 911 y botón de tema
-function Header({ weather, theme, onToggleTheme, onLogout }) {
+function Header({ weather, theme, onToggleTheme, onLogout, onOpenProfile, profilePhoto }) {
   return (
     <header className="ha-header">
       <div className="ha-header__brand">
@@ -230,6 +232,9 @@ function Header({ weather, theme, onToggleTheme, onLogout }) {
         </a>
         <button className="ha-header__theme" onClick={onToggleTheme} aria-label="Cambiar tema">
           <Icon name={theme === 'dark' ? 'light_mode' : 'dark_mode'} />
+        </button>
+        <button type="button" className="ha-header__profile" onClick={onOpenProfile} aria-label="Abrir mi perfil" title="Mi perfil">
+          {profilePhoto ? <img src={profilePhoto} alt="" /> : <Icon name="account_circle" size={21}/>}<span>Mi perfil</span>
         </button>
         {onLogout && <button type="button" className="ha-header__logout" onClick={onLogout} aria-label="Cerrar sesión"><Icon name="logout" size={18}/><span>Salir</span></button>}
       </div>
@@ -374,6 +379,7 @@ function RiskMap({ theme, colonias, fugas, drenajes, reports, focus, onSelect })
                 <div className="ha-report-popup">
                   <strong>{p.report.titulo}</strong>
                   <p>{p.report.descripcion}</p>
+                  <p>Reportado por: {p.report.autorNombre || 'Ciudadano (reporte anterior)'}</p>
                   <p>Tipo: {REPORT_TYPES.find(t => t.value === p.report.tipo)?.label || p.report.tipo}</p>
                   <p>Estado: {p.report.estado} · Precisión: ±{p.report.precisionMetros} m</p>
                   <p>Fecha: {p.report.creadoEn?.toDate?.().toLocaleString('es-MX') || 'Reciente'}</p>
@@ -558,7 +564,7 @@ function ReportForm({ onClose, onCreated, notify }) {
   </section>;
 }
 
-export default function CitizenReports({ onLogout }) {
+export default function CitizenReports({ onLogout, profile: account }) {
   const [theme, toggleTheme] = useTheme();
   const weather = useWeather();
   const { toasts, notify, dismiss } = useToasts();
@@ -567,6 +573,25 @@ export default function CitizenReports({ onLogout }) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [formOpen, setFormOpen] = useState(false);
+  const [profileOpen, setProfileOpen] = useState(false);
+  const [citizenProfile, setCitizenProfile] = useState(null);
+  const [profileLoading, setProfileLoading] = useState(true);
+  const [profileError, setProfileError] = useState('');
+  useEffect(() => subscribeCitizenProfile(
+    data => { setCitizenProfile(data); setProfileLoading(false); setProfileError(''); },
+    err => { setProfileError(err.message); setProfileLoading(false); }
+  ), []);
+  const profileComplete = !profileLoading && !profileError && isCitizenProfileComplete(citizenProfile);
+  const beginReport = () => {
+    if (profileLoading) return;
+    if (!profileComplete) {
+      setFormOpen(false);
+      setProfileOpen(true);
+      notify({ title: 'Completa tu perfil', message: 'Puedes consultar reportes, pero necesitas llenar tus datos antes de publicar.', tone: 'warning' });
+      return;
+    }
+    setFormOpen(v => !v);
+  };
   const [statsOpen, setStatsOpen] = useState(() => {
     try { return localStorage.getItem('arca-stats-open') !== 'false'; } catch { return true; }
   });
@@ -581,16 +606,20 @@ export default function CitizenReports({ onLogout }) {
   const evidencias = reports.filter(r => r.fotoBase64).slice(0, 6).map(r => ({
     id: r.id, image: r.fotoBase64, tone: r.estado === 'resuelto' ? 'success' : 'warning',
     place: r.titulo, street: REPORT_TYPES.find(t => t.value === r.tipo)?.label || r.tipo,
-    ai: `Estado: ${r.estado}`, time: r.creadoEn?.toDate?.().toLocaleString('es-MX') || 'Reciente',
+    ai: `Estado: ${r.estado} · Reportó: ${r.autorNombre || 'Ciudadano (reporte anterior)'}`, time: r.creadoEn?.toDate?.().toLocaleString('es-MX') || 'Reciente',
   }));
   const alerts = mine.filter(r => r.estado === 'en-revision' || r.estado === 'resuelto').map(r => ({
     id: r.id, title: r.titulo, detail: r.estado === 'resuelto' ? 'Tu reporte fue resuelto' : 'Tu reporte está en revisión',
   }));
   return <div className="ha" data-theme={theme}>
-    <Header weather={weather} theme={theme} onToggleTheme={toggleTheme} onLogout={onLogout}/>
+    <Header weather={weather} theme={theme} onToggleTheme={toggleTheme} onLogout={onLogout} onOpenProfile={() => setProfileOpen(true)} profilePhoto={citizenProfile?.fotoBase64}/>
     <main className="ha-dashboard">
       <div className="ha-dashboard__intro"><div><Badge tone="primary" live>Reportes ciudadanos · Firebase</Badge><h1>Monitor Hídrico Metropolitano <span>| Veracruz – Boca del Río</span></h1><p className="ha-soft">Incidencias ciudadanas y seguimiento geográfico.</p></div>
-      <button type="button" className="ha-btn" onClick={() => setFormOpen(v => !v)}><Icon name="add_location_alt" size={18}/>{formOpen ? 'Cerrar formulario' : 'Generar reporte'}</button></div>
+      <button type="button" className="ha-btn" onClick={beginReport} disabled={profileLoading}><Icon name="add_location_alt" size={18}/>{formOpen ? 'Cerrar formulario' : 'Generar reporte'}</button></div>
+      {!profileLoading && !profileComplete && <div className="ha-profile-gate" role="status">
+        <Icon name="info" size={20}/><span>{profileError ? 'No se pudo verificar tu perfil.' : 'Para generar reportes necesitas completar tu perfil. Puedes seguir consultando el mapa y las incidencias.'}</span>
+        <button type="button" onClick={() => setProfileOpen(true)}>Configurar perfil</button>
+      </div>}
       <div className="ha-toolbar">
         <button type="button" className="ha-toolbar__button" onClick={() => setStatsOpen(v => !v)} aria-expanded={statsOpen}>
           <Icon name={statsOpen ? 'visibility_off' : 'visibility'} size={18}/>{statsOpen ? 'Ocultar estadísticas' : 'Mostrar estadísticas'}
@@ -603,7 +632,7 @@ export default function CitizenReports({ onLogout }) {
         <h3>Avisos de seguimiento</h3>
         {alerts.length ? alerts.map(a => <p key={a.id}><strong>{a.title}:</strong> {a.detail}</p>) : <p className="ha-soft">Todavía no hay cambios de estado que notificar. Los avisos de tandeos y riesgos requieren sus colecciones y reglas correspondientes.</p>}
       </section>}
-      {formOpen && <ReportForm onClose={() => setFormOpen(false)} onCreated={() => setFormOpen(false)} notify={notify}/>}
+      {formOpen && profileComplete && <ReportForm onClose={() => setFormOpen(false)} onCreated={() => setFormOpen(false)} notify={notify}/>}
       {loading && <p className="ha-soft">Cargando reportes...</p>}
       {error && <p role="alert" className="ha-report-error">{error}</p>}
       {statsOpen && <KpiCards colonias={[]} reports={reports}/>}
@@ -612,10 +641,12 @@ export default function CitizenReports({ onLogout }) {
         <Evidence evidencias={evidencias}/>
       </div><div className="ha-dashboard__column">
         <Card icon="assignment" title="Mis reportes" aside={<Badge tone="primary">{mine.length}</Badge>}>
-          {mine.length === 0 ? <p className="ha-soft">Todavía no has enviado reportes.</p> : <ul className="ha-my-reports">{mine.map(r => <li key={r.id}><strong>{r.titulo}</strong><Badge tone={r.estado === 'resuelto' ? 'success' : 'warning'}>{r.estado}</Badge><p className="ha-soft">{r.creadoEn?.toDate?.().toLocaleString('es-MX') || 'Reciente'}</p></li>)}</ul>}
+          {mine.length === 0 ? <p className="ha-soft">Todavía no has enviado reportes.</p> : <ul className="ha-my-reports">{mine.map(r => <li key={r.id}><strong>{r.titulo}</strong><span className="ha-soft"> · {r.autorNombre || 'Ciudadano (reporte anterior)'}</span><Badge tone={r.estado === 'resuelto' ? 'success' : 'warning'}>{r.estado}</Badge><p className="ha-soft">{r.creadoEn?.toDate?.().toLocaleString('es-MX') || 'Reciente'}</p></li>)}</ul>}
         </Card>
         <Forecast hourly={weather.hourly}/>
       </div></div>
-    </main><Toasts toasts={toasts} onDismiss={dismiss}/>
+    </main>
+    {profileOpen && <CitizenProfile account={account} profile={citizenProfile} onClose={() => setProfileOpen(false)} onSave={saveCitizenProfile}/>}
+    <Toasts toasts={toasts} onDismiss={dismiss}/>
   </div>;
 }
