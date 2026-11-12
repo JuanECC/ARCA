@@ -678,7 +678,7 @@
 
 /* Degradado de respaldo si la foto no carga */
 .ha-evidence__photo {
-  height: 7rem;
+  aspect-ratio: 16 / 9;
   background-color: var(--surface-high);
   background-image: linear-gradient(135deg, var(--primary-bg), var(--tertiary-bg));
   background-size: cover;
